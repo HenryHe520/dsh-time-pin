@@ -26,6 +26,7 @@ In the default mode the plugin injects nothing and changes nothing.
 ## Contents
 
 - [What it does](#what-it-does)
+- [Screenshots](#screenshots)
 - [Install](#install)
 - [Quick start](#quick-start)
 - [The `/pin` command](#the-pin-command)
@@ -51,6 +52,24 @@ In the default mode the plugin injects nothing and changes nothing.
 | **Filtered web evidence** | `web_search` sources are dropped when they are undated or fall outside `[as_of − span, as_of]`; the model receives a note explaining what was excluded. |
 | **Anchor echo** | After entering or changing a restricted window, the model's first reply must open with a one-line confirmation of the active window. A missing echo gets one nudge; anchoring never blocks the turn. |
 | **Silent-job narration** | Background jobs that produce no output for 90 seconds (then every 3 minutes) produce deterministic `[TIME FACT]` facts the model can report — no guessing about "still running?". |
+
+## Screenshots
+
+![A pinned clock in the conversation header](docs/screenshots/shot-01-default.png)
+
+*Default mode injects nothing and filters nothing — the header control always shows the current state.*
+
+![Set a time point and a lookback span](docs/screenshots/shot-02-window-panel.png)
+
+*Pin a time point and a lookback span; the panel submits the same `/pin` command a user could type.*
+
+![One command, one validator](docs/screenshots/shot-03-command-receipts.png)
+
+*`/pin` receipts: restricted past window (dated evidence only) and future view (speculation, never fact).*
+
+![Configure it from the Plugins page](docs/screenshots/shot-04-settings.png)
+
+*Plugins → Installed → dsh-time-pin → Configure.*
 
 ## Install
 
