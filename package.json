@@ -1,0 +1,79 @@
+{
+  "name": "dsh-time-pin",
+  "version": "0.1.0",
+  "description": "Time Anchor (时间锚定) — pin the agent's \"as of\" clock and give every conversation a lookback evidence window (past, future, or BC), plus deterministic narration of long silent tasks.",
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/**/*.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "README.zh.md",
+    "DESIGN.md",
+    "SPIKE.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test tests/window.test.mjs tests/fold.test.mjs tests/evidence.test.mjs tests/silence.test.mjs tests/client.dom.test.mjs tests/host-wiring.test.mjs tests/host-schema.test.mjs",
+    "test:client": "node --test tests/client.dom.test.mjs",
+    "test:host": "node --test tests/host-wiring.test.mjs tests/host-schema.test.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "time",
+    "time-anchor",
+    "time-window",
+    "as-of",
+    "historical-perspective",
+    "evidence",
+    "progress"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.1-rc <2"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.0-rc <5",
+    "@deepseek-ai/schemastery": "^3.18.0",
+    "@deepseek-ai/dsh-llm": ">=0.2.1-rc <2",
+    "@deepseek-ai/dsh-session": ">=0.2.1-rc <2",
+    "@deepseek-ai/dsh-session-projection": ">=0.2.1-rc <2",
+    "@deepseek-ai/dsh-tools": ">=0.2.1-rc <2",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": { "optional": true },
+    "@deepseek-ai/schemastery": { "optional": true },
+    "@deepseek-ai/dsh-llm": { "optional": true },
+    "@deepseek-ai/dsh-session": { "optional": true },
+    "@deepseek-ai/dsh-session-projection": { "optional": true },
+    "@deepseek-ai/dsh-tools": { "optional": true },
+    "zod": { "optional": true }
+  }
+}

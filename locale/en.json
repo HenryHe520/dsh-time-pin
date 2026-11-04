@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Time Anchor",
+    "description": "Pin the agent's \"as of\" clock and give the conversation a lookback evidence window (past, future, or BC), plus status narration for long silent tasks."
+  }
+}

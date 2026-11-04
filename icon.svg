@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="time-pin-title time-pin-desc">
+  <title id="time-pin-title">Time Pin</title>
+  <desc id="time-pin-desc">A cream clock face on a navy rounded tile, showing ten past ten, with a coral pushpin stuck into twelve o'clock to mark the pinned as-of time.</desc>
+
+  <rect width="64" height="64" rx="14" fill="#1E2A47"/>
+
+  <circle cx="32" cy="38" r="19.5" fill="#F7F0E0"/>
+  <circle cx="32" cy="38" r="19.5" fill="none" stroke="#D8C59A" stroke-width="1.6"/>
+
+  <rect x="45.4" y="36.9" width="4" height="2.2" rx="1.1" fill="#D8C59A"/>
+  <rect x="14.6" y="36.9" width="4" height="2.2" rx="1.1" fill="#D8C59A"/>
+  <rect x="30.9" y="51.2" width="2.2" height="4" rx="1.1" fill="#D8C59A"/>
+
+  <path d="M32 38 L23.1 32.9" fill="none" stroke="#1E2A47" stroke-width="4.2" stroke-linecap="round"/>
+  <path d="M32 38 L43.7 31.2" fill="none" stroke="#1E2A47" stroke-width="3.2" stroke-linecap="round"/>
+
+  <ellipse cx="32" cy="10.5" rx="6" ry="5" fill="#F2643D"/>
+  <path d="M29.2 14.2 h5.6 l-1.2 3.6 h-3.2 z" fill="#F2643D"/>
+  <path d="M30.2 17.4 h3.6 L32 26 z" fill="#F2643D"/>
+  <circle cx="32" cy="38" r="2.9" fill="#F2643D"/>
+</svg>

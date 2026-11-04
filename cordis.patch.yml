@@ -1,0 +1,14 @@
+# dsh-time-pin bundle layer.
+#
+# Installs the Host half (lib/index.js) as one Loader row. The Client half is
+# discovered from package.json `dsh.client` and served from lib/client.js, so it
+# needs no row of its own.
+- insert:
+    - id: dsh-time-pin
+      name: dsh-time-pin
+      config:
+        promptLocale: zh
+        silence:
+          enabled: true
+          firstDelayMs: 90000
+          repeatMs: 180000
