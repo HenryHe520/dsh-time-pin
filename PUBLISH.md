@@ -58,15 +58,19 @@ npm publish --dry-run             # 检查 registry / tag / access
   未发布的测试文件可从 `E:\dshdata\sessions` 的会话日志中回放 `write`/`edit`
   工具调用恢复（本次已恢复到 121 tests / 109 pass / 0 fail / 12 skipped）。
 
-## cordis.run 上架（待办，浏览器操作）
+## cordis.run 上架（已提交，审核中）
 
-提交入口：<https://cordis.run/submit>
+提交入口：<https://cordis.run/submit> ｜ 表单：5 步（网址 / cordis 插件信息 / 基本信息·图片 / 分类标签 / 富内容）
 
-- npm 包名与版本：`dsh-time-pin@0.1.0`
-- 标题/描述：见 `locale/en.json`、`locale/zh.json`（`Time Anchor` / `时间锚定`）
-- icon：包内 `./icon`（`icon.svg`，64×64）
-- README：包内中英双份
-- keywords、`engines.dsh: ">=0.2.1-rc <2"`：见 `package.json`
-- 隐私：零遥测、无自建网络请求（README 已声明）
-- 建议补 2–4 张截图 / 1 个 30–60 秒 GIF（默认态、`2000-01-01 · 前10年`、未来视角警告、插件页配置面板）
-- 一句话切割邻居插件：本插件是「用户可 pin 的 as_of + span 证据窗口 + anchor echo」，不是检索纪律 / 心跳 / watchdog。
+- **状态**：`审核中`（2026-11-04 提交，人工审核队列；未提供反链，因此不走 24h 快速通道）
+- 提交快照：`Time Anchor` · `dsh-time-pin` · 2026-11-04
+- 预期页面：<https://cordis.run/plugins/dsh-time-pin>（审核通过后生效；当前 404 属正常）
+- 提交材料与逐字段文案：见 [`SUBMIT.md`](SUBMIT.md)
+- 市场素材：`docs/screenshots/cover-16x9.png`（封面）、`logo-512.png`（Logo）、4 张 1280×720 功能图、`demo-slideshow.gif`
+- 审核通过后的收尾：README 加 marketplace 链接/徽章；把 `cordis.run/plugins/dsh-time-pin` 补进本文件的发布记录。
+
+### 审核期间可选的改进
+
+1. **加反链走快速通道**：任何可编辑的网站/博客加一个指向 `https://github.com/HenryHe520/dsh-time-pin` 的链接，并在 cordis.run 表单里补填该 URL（验证后 24h 自动发布）。
+2. **npm 0.1.1**：npm 上 `0.1.0` 的 README 是发布前版本（没有截图章节和 GitHub/npm 链接）。发布 `0.1.1` 可让 npm 页面也带上截图；需要维护者用 OTP 执行 `npm publish`（`npm stage publish` 可延后 2FA，但 approve 仍需 OTP）。
+
