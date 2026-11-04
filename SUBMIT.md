@@ -48,7 +48,7 @@ Pin the agent's as-of clock and give every conversation a dated evidence window
 **简短描述（20–800 字符，英文）** —— 699 字符
 
 ```text
-Time Anchor gives every DeepSeek Harness conversation a pinned "as of" clock and a lookback span: the evidence window [as_of - span, as_of]. Pin a past, future, or BC time point from the chat header or with /pin. In restricted mode the agent is told the exact window and must only use dated sources inside it: web_search results are filtered by publication date, undated sources are excluded, and the first reply must echo the active window (a missing echo gets one nudge). Long silent background jobs produce deterministic [TIME FACT] facts. A read-only time_pin_status tool lets the agent inspect its own window. Default mode injects nothing. Evidence isolation, not model amnesia. Zero telemetry.
+Time Anchor gives every DeepSeek Harness conversation a pinned "as of" clock and a lookback span: the evidence window [as_of - span, as_of]. Pin a past, future, or BC time point from the chat header or with /pin. In restricted mode the agent is told the exact window and must only use dated sources inside it: web_search results are filtered by publication date, undated sources are excluded, and the first reply must echo the active window (a missing echo gets one nudge). Long silent background jobs produce deterministic [TIME FACT] facts. A read-only time_pin_status tool lets the agent inspect its own window. Default mode injects nothing. Evidence isolation, not model amnesia. MIT-licensed and free; zero telemetry.
 ```
 
 **定价模式**：选最接近「免费」的选项（MIT 开源、无付费功能）。
