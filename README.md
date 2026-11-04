@@ -2,6 +2,9 @@
 
 English | [中文](README.zh.md)
 
+`npm` [dsh-time-pin@0.1.0](https://www.npmjs.com/package/dsh-time-pin) ·
+`GitHub` [HenryHe520/dsh-time-pin](https://github.com/HenryHe520/dsh-time-pin)
+
 **Pin the agent's "now" to a point in time and give the conversation a lookback
 evidence window — past, future, or BC — instead of letting it answer from
 today's knowledge.**

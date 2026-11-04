@@ -7,22 +7,11 @@
 
 ---
 
-## 1. 前置：GitHub 仓库
+## 1. 前置：GitHub 仓库（已完成）
 
-仓库名建议 `dsh-time-pin`（public）。本目录已 `git init` 并提交好首个 commit，
-你只需建仓库并 push（或让 gh 重新登录后由我代推）：
-
-```sh
-cd "E:\工作文件\插件制作\dsh-time-pin"
-
-# 方式 A：用 GitHub CLI（当前 gh token 过期，先重新登录）
-gh auth login
-gh repo create dsh-time-pin --public --source . --remote origin --push
-
-# 方式 B：先在网页建空仓库（不要勾 README），再
-git remote add origin https://github.com/<owner>/dsh-time-pin.git
-git push -u origin main
-```
+- 仓库：<https://github.com/HenryHe520/dsh-time-pin>（public，分支 `main`）
+- 本地已提交并 push；后续改动 `git add -A && git commit -m "..." && git push` 即可。
+- 仓库里包含：源码、测试、文档、`docs/screenshots/` 成品图、`scripts/` 资产脚本。
 
 ## 2. 英文提交文案（可直接复制）
 
@@ -65,7 +54,7 @@ dsh plugin --profile <profile> add dsh-time-pin
 **Repository URL**
 
 ```text
-https://github.com/<owner>/dsh-time-pin
+https://github.com/HenryHe520/dsh-time-pin
 ```
 
 **Category suggestions**（按提交页实际选项选择）
@@ -91,12 +80,22 @@ Zero telemetry. The plugin makes no network requests of its own; all web access 
 
 **Backlink (可选，快速通道)**：如果你有任何可编辑的网站/博客，加一个指向插件页或仓库的链接，并在提交表单里填该 URL。
 
-## 3. 图标与截图
+## 3. 图标与截图（已就绪）
 
-- Icon：包根 `icon.svg`（64×64，已随 npm 包导出为 `./icon`）。若表单只收 PNG，可用 `docs/screenshots/icon-512.png`（我生成）。
-- 截图：放 `docs/screenshots/`，命名与内容见 §4；我会把它们裁切、加标注、转 PNG/JPEG 优化。
+- Icon：`icon.svg`（64×64，npm 包导出 `./icon`）；表单若只收 PNG，用 `docs/screenshots/icon-512.png`（512×512）。
+- 成品截图（1280×720，英文标注，已去元数据，已随 README 引用并 push 到 GitHub）：
 
-## 4. 截图拍摄脚本（你拍，我来处理）
+| 文件 | 内容 |
+|---|---|
+| `docs/screenshots/shot-01-default.png` | 标题栏控件 + 三种状态说明（默认 / 受限 / 未来） |
+| `docs/screenshots/shot-02-window-panel.png` | 设置面板（时间点、回看范围、预设按钮） |
+| `docs/screenshots/shot-03-command-receipts.png` | `/pin` 回执：受限窗口 + 未来视角 |
+| `docs/screenshots/shot-04-settings.png` | 插件页配置（语言 / 播报开关 / 延迟 / 间隔） |
+| `docs/screenshots/demo-slideshow.gif` | 4 张成品图的 slideshow（可选，真实录屏更好） |
+
+原始截图保留在 `docs/screenshots/raw-*.png`（已被 `.gitignore` 排除，只留本地）。
+
+## 4. 原始截图拍摄脚本（记录用，已完成）
 
 保存目录：`E:\工作文件\插件制作\dsh-time-pin\docs\screenshots\`
 
@@ -104,19 +103,17 @@ Zero telemetry. The plugin makes no network requests of its own; all web access 
 |---|---|---|
 | `raw-01-default.png` | 默认态 | 新对话，标题栏右侧 `🕐 默认 · 不限` chip（可 hover 出 tooltip） |
 | `raw-02-panel.png` | 设置面板 | 点 chip 展开面板，as-of 填 `2000-01-01`，span 选 `10年`（先别点应用） |
-| `raw-03-pinned.png` | 受限态 | 点「应用」，等 chip 变 `🕰 2000-01-01 · 前10年`，截对话区 |
-| `raw-04-future.png` | 未来视角 | 面板输入 `3000-01-01` 应用，截 chip `🌌 3000-01-01 · 不限` 与未来提示 |
-| `raw-05-settings.png` | 配置页 | 侧边栏 → 插件 → 已安装 → dsh-time-pin → 配置（四项控件） |
-| `raw-06-bc.png`（可选） | 公元前 | `公元前200年` + `前20年` |
-| `raw-demo.mp4` / `.gif`（可选） | 30–60s 演示 | 见 §5 |
+| `raw-03-pinned.png` | 受限态回执 | 点「应用」后，`/pin` 回执条 |
+| `raw-04-future.png` | 未来视角回执 | 面板输入 `3000-01-01` 应用后的回执条 |
+| `raw-05-settings.png` | 配置页 | 侧边栏 → 插件 → 已安装 → dsh-time-pin → 配置 |
 
 拍摄工具：`Win + Shift + S` 区域截图（存 PNG），或 `Win + PrtScn` 全屏（存到 图片\屏幕截图）。
 注意：**不要拍到**侧边栏其它会话名、账号、文件路径等隐私信息；窗口宽度建议 ≥1200px；深/浅色主题保持一致。
 
-## 5. 演示 GIF / 录屏
+## 5. 演示 GIF / 录屏（可选改进）
 
-- 最简单：`Win + G`（Xbox Game Bar）录 30–60 秒 MP4，保存为 `raw-demo.mp4`，我会转 GIF（需要时我会装一个小工具）。
-- 或 `Win + Shift + S` 连拍 4–6 张不同状态，我用 Pillow 拼成 slideshow GIF（不如真实录屏，但够用）。
+- 现成可用：`docs/screenshots/demo-slideshow.gif`（4 张成品图的 slide）。
+- 更好的版本：`Win + G`（Xbox Game Bar）录 30–60 秒 MP4 → `raw-demo.mp4`，我转成 GIF。
 
 ## 6. 提交步骤
 

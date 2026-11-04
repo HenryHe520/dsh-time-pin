@@ -2,6 +2,9 @@
 
 [English](README.md) | 中文
 
+`npm` [dsh-time-pin@0.1.0](https://www.npmjs.com/package/dsh-time-pin) ·
+`GitHub` [HenryHe520/dsh-time-pin](https://github.com/HenryHe520/dsh-time-pin)
+
 **把 AI 的“现在”钉在你选的时间点，并给对话划出一个只能往前看的取证窗口——过去、未来或公元前都可以，而不是让它用今天的知识回答历史问题。**
 
 时间锚定（Time Anchor）给每个 DSH 会话加上一组会话级时间参数：一个 **as-of 时间点**和一个**回看范围（span）**，两者组成取证窗口 `[as_of − span, as_of]`。进入**受限模式**后，插件会在窗口变化时告诉智能体：本会话以哪个窗口为准、证据规则是什么；`web_search` 的检索结果会被过滤成**窗口内、带日期**的来源；模型的第一条回复必须确认当前时间窗。另一项能力为长时间无输出的**后台任务**提供确定性的 `[TIME FACT]` 播报。在默认模式下，插件不注入任何内容，也不改变任何行为。

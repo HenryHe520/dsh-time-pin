@@ -11,6 +11,8 @@
 | 发布账号 | `henryhe520` |
 | 包地址 | https://www.npmjs.com/package/dsh-time-pin |
 | tarball | https://registry.npmjs.org/dsh-time-pin/-/dsh-time-pin-0.1.0.tgz |
+| GitHub 仓库 | https://github.com/HenryHe520/dsh-time-pin |
+| 市场素材 | `docs/screenshots/`（4 张 1280×720 成品图 + `icon-512.png` + slideshow GIF），已随 README 引用 |
 | 校验 | published tarball 与本地 19 个发布文件 **逐文件哈希一致**（0 差异） |
 
 发布流程说明：这次用的是 npm 的 **staged publishing**（`npm stage publish` + `npm stage approve`），registry 里会先出现一个
