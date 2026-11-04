@@ -148,6 +148,62 @@ def chip_gallery(chip: Image.Image) -> Image.Image:
     return sheet
 
 
+def cover(chip: Image.Image, panel: Image.Image) -> Image.Image:
+    """16:9 dark hero cover for the marketplace card."""
+    width, height = 1280, 720
+    canvas = Image.new("RGB", (width, height), (11, 21, 38))
+    draw = ImageDraw.Draw(canvas)
+    for y in range(height):
+        t = y / (height - 1)
+        color = (
+            round(11 + (20 - 11) * t),
+            round(21 + (36 - 21) * t),
+            round(38 + (62 - 38) * t),
+        )
+        draw.line([(0, y), (width, y)], fill=color)
+    # soft accent glow
+    glow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    ImageDraw.Draw(glow).ellipse((760, -180, 1420, 460), fill=(58, 110, 220, 70))
+    glow = glow.filter(ImageFilter.GaussianBlur(90))
+    canvas.paste(Image.alpha_composite(canvas.convert("RGBA"), glow).convert("RGB"), (0, 0))
+
+    draw.text((72, 86), "Time Anchor", font=font(BOLD, 76), fill=(255, 255, 255))
+    draw.text((76, 188), "dsh-time-pin  ·  DeepSeek Harness plugin", font=font(REGULAR, 24), fill=(147, 180, 226))
+    draw.text((76, 244), "Pin the agent’s “as of” clock and give every", font=font(SEMI, 30), fill=(226, 234, 246))
+    draw.text((76, 283), "conversation a dated evidence window.", font=font(SEMI, 30), fill=(226, 234, 246))
+
+    bullets = [
+        "Past, future or BC time points, plus a lookback span",
+        "Restricted evidence: only dated sources inside the window",
+        "Anchor echo, filtered web_search, silent-job time facts",
+    ]
+    y = 372
+    for bullet in bullets:
+        draw.ellipse((80, y + 9, 92, y + 21), fill=(86, 156, 255))
+        draw.text((108, y), bullet, font=font(REGULAR, 21), fill=(183, 201, 226))
+        y += 44
+
+    # Header control card (top right)
+    card = Image.new("RGB", (440, 300), (255, 255, 255))
+    chip_up = chip.resize((chip.width * 2, chip.height * 2), Image.LANCZOS)
+    chip_up = chip_up.filter(ImageFilter.UnsharpMask(radius=1.2, percent=140, threshold=2))
+    card.paste(chip_up, ((440 - chip_up.width) // 2, (300 - chip_up.height) // 2))
+    rounded_card(canvas, (782, 128, 782 + 440, 128 + 300))
+    canvas.paste(card, (782, 128))
+
+    # Settings panel peeking below the header card (bottom right)
+    panel_small = panel.resize((round(panel.width * 0.34), round(panel.height * 0.34)), Image.LANCZOS)
+    px, py = 946, 470
+    rounded_card(canvas, (px - 10, py - 10, px + panel_small.width + 10, py + panel_small.height + 10))
+    canvas.paste(panel_small, (px, py))
+
+    draw.text((76, 664), "npm: dsh-time-pin@0.1.0   ·   github.com/HenryHe520/dsh-time-pin", font=font(REGULAR, 19), fill=(122, 146, 180))
+    target = SHOTS / "cover-16x9.png"
+    canvas.save(target, format="PNG", optimize=True)
+    print(f"cover-16x9.png: {canvas.width}x{canvas.height}, {target.stat().st_size // 1024} KiB")
+    return target
+
+
 def main() -> int:
     raw = {path.stem: Image.open(path).convert("RGB") for path in SHOTS.glob("raw-*.png")}
     outputs: list[Path] = []
@@ -186,6 +242,8 @@ def main() -> int:
         "Model-prompt language, silence narration on/off, first delay and refresh interval",
         settings, 0.63,
     ))
+
+    cover(chip, raw["raw-02-panel"])
 
     frames = [Image.open(path).convert("RGB") for path in outputs]
     gif = SHOTS / "demo-slideshow.gif"

@@ -1,123 +1,114 @@
-# SUBMIT · cordis.run 上架清单
+# SUBMIT · cordis.run 上架（按真实 5 步表单）
 
-> 上架入口：<https://cordis.run/submit>
-> 规则要点（来自提交页）：**所有字段用英文填写**；提供反链可走快速通道（验证后 24h 自动发布），
-> 不挂反链则进入人工审核队列；提交需要 cordis.run 账号登录。
-> 提交页（登录后）可能还有分类、图标、截图上传等字段，下面英文文案可直接复制。
+> 入口：<https://cordis.run/submit>（需登录；**所有字段用英文**；提供反链可走快速通道 24h 自动发布）
+> 已发布 npm 包：`dsh-time-pin@0.1.0`（已声明 `dsh.bundle`，表单校验会通过）
+> GitHub：<https://github.com/HenryHe520/dsh-time-pin>
 
 ---
 
-## 1. 前置：GitHub 仓库（已完成）
+## 01 / 05 网址
 
-- 仓库：<https://github.com/HenryHe520/dsh-time-pin>（public，分支 `main`）
-- 本地已提交并 push；后续改动 `git add -A && git commit -m "..." && git push` 即可。
-- 仓库里包含：源码、测试、文档、`docs/screenshots/` 成品图、`scripts/` 资产脚本。
-
-## 2. 英文提交文案（可直接复制）
-
-**Name / Title**
-
-```text
-Time Anchor
-```
-
-**Tagline (short description, ≤ ~80 chars)**
-
-```text
-Pin your agent's "as of" clock and give every conversation a dated evidence window.
-```
-
-**Full description (English)**
-
-```text
-Time Anchor gives every DSH conversation a pinned "as of" clock and a lookback window: the evidence window [as_of - span, as_of].
-
-Pin a time point (past, future, or BC) and a lookback span from the conversation header, or type /pin. In restricted mode the agent is told the exact window and the evidence rules once per window change: it may only use dated sources inside the window, undated sources are excluded, and its first reply must echo the active window (anchor echo). web_search results are filtered to dated sources inside the window; an empty window produces an honest "no dated evidence" answer instead of invention.
-
-It also narrates long-running silent background jobs with deterministic [TIME FACT] facts, and exposes a read-only time_pin_status tool so the agent can inspect its own window. Default mode injects nothing.
-
-Honest disclaimer: this is evidence isolation, not model amnesia — the model may still know events after as_of; the plugin constrains what may be used as evidence and makes the model state its window, but does not promise zero leakage. Zero telemetry, no network requests of its own. Configure it from Plugins -> Installed -> dsh-time-pin -> Configure.
-```
-
-**npm package name**
-
-```text
-dsh-time-pin
-```
-
-**Install command (copy from the marketplace page after submit)**
-
-```text
-dsh plugin --profile <profile> add dsh-time-pin
-```
-
-**Repository URL**
+**官网 URL**：填 GitHub 仓库地址，然后点「自动填充」：
 
 ```text
 https://github.com/HenryHe520/dsh-time-pin
 ```
 
-**Category suggestions**（按提交页实际选项选择）
-`Productivity` / `AI tools` / `Developer tools` / `Time & History`（选最接近的两项）
+自动填充若拿不到信息，就手动按 03 步填写。备用 URL（npm 包页）：
+`https://www.npmjs.com/package/dsh-time-pin`
 
-**Tags / keywords**
+## 02 / 05 cordis 插件信息
 
-```text
-dsh, dsh-plugin, time anchor, as-of, time window, historical perspective, evidence filter, anchor echo, background jobs, progress
-```
-
-**Compatibility**
+**npm 包名**
 
 ```text
-DSH >= 0.2.1-rc < 2 (engines.dsh), Node.js >= 20
+dsh-time-pin
 ```
 
-**Privacy / safety statement**
+**GitHub 仓库（可选）**
 
 ```text
-Zero telemetry. The plugin makes no network requests of its own; all web access is the Host's own retrieval capability. No credentials, no filesystem access, no eval / dynamic code execution.
+https://github.com/HenryHe520/dsh-time-pin
 ```
 
-**Backlink (可选，快速通道)**：如果你有任何可编辑的网站/博客，加一个指向插件页或仓库的链接，并在提交表单里填该 URL。
+## 03 / 05 基本信息
 
-## 3. 图标与截图（已就绪）
+**工具名称**
 
-- Icon：`icon.svg`（64×64，npm 包导出 `./icon`）；表单若只收 PNG，用 `docs/screenshots/icon-512.png`（512×512）。
-- 成品截图（1280×720，英文标注，已去元数据，已随 README 引用并 push 到 GitHub）：
+```text
+Time Anchor
+```
 
-| 文件 | 内容 |
+**一句话简介（≤120 字）** —— 79 字符
+
+```text
+Pin the agent's as-of clock and give every conversation a dated evidence window
+```
+
+**简短描述（20–800 字符，英文）** —— 699 字符
+
+```text
+Time Anchor gives every DeepSeek Harness conversation a pinned "as of" clock and a lookback span: the evidence window [as_of - span, as_of]. Pin a past, future, or BC time point from the chat header or with /pin. In restricted mode the agent is told the exact window and must only use dated sources inside it: web_search results are filtered by publication date, undated sources are excluded, and the first reply must echo the active window (a missing echo gets one nudge). Long silent background jobs produce deterministic [TIME FACT] facts. A read-only time_pin_status tool lets the agent inspect its own window. Default mode injects nothing. Evidence isolation, not model amnesia. Zero telemetry.
+```
+
+**定价模式**：选最接近「免费」的选项（MIT 开源、无付费功能）。
+
+## 03 / 05 图片
+
+| 字段 | 文件 |
 |---|---|
-| `docs/screenshots/shot-01-default.png` | 标题栏控件 + 三种状态说明（默认 / 受限 / 未来） |
-| `docs/screenshots/shot-02-window-panel.png` | 设置面板（时间点、回看范围、预设按钮） |
-| `docs/screenshots/shot-03-command-receipts.png` | `/pin` 回执：受限窗口 + 未来视角 |
-| `docs/screenshots/shot-04-settings.png` | 插件页配置（语言 / 播报开关 / 延迟 / 间隔） |
-| `docs/screenshots/demo-slideshow.gif` | 4 张成品图的 slideshow（可选，真实录屏更好） |
+| Logo（方形 PNG/JPG/WebP ≤5MB） | `docs/screenshots/logo-512.png`（512×512） |
+| 封面图（16:9，可选） | `docs/screenshots/cover-16x9.png`（1280×720） |
 
-原始截图保留在 `docs/screenshots/raw-*.png`（已被 `.gitignore` 排除，只留本地）。
+## 04 / 05 分类与标签
 
-## 4. 原始截图拍摄脚本（记录用，已完成）
+**分类（可多选，最多 6）**：建议选 3 个
+`AI 能力增强`、`个人助理`、`开发辅助`（如选项不同：`工作流自动化` / `自动化` 亦可）
 
-保存目录：`E:\工作文件\插件制作\dsh-time-pin\docs\screenshots\`
+**建议标签（逗号分隔，最多 8 个，每个 ≤30 字符）**
 
-| 文件 | 画面 | 操作 |
-|---|---|---|
-| `raw-01-default.png` | 默认态 | 新对话，标题栏右侧 `🕐 默认 · 不限` chip（可 hover 出 tooltip） |
-| `raw-02-panel.png` | 设置面板 | 点 chip 展开面板，as-of 填 `2000-01-01`，span 选 `10年`（先别点应用） |
-| `raw-03-pinned.png` | 受限态回执 | 点「应用」后，`/pin` 回执条 |
-| `raw-04-future.png` | 未来视角回执 | 面板输入 `3000-01-01` 应用后的回执条 |
-| `raw-05-settings.png` | 配置页 | 侧边栏 → 插件 → 已安装 → dsh-time-pin → 配置 |
+```text
+时间锚定, 历史视角, 证据窗口, as-of, 检索过滤, DSH 插件
+```
 
-拍摄工具：`Win + Shift + S` 区域截图（存 PNG），或 `Win + PrtScn` 全屏（存到 图片\屏幕截图）。
-注意：**不要拍到**侧边栏其它会话名、账号、文件路径等隐私信息；窗口宽度建议 ≥1200px；深/浅色主题保持一致。
+## 05 / 05 富内容（可选，但建议填）
 
-## 5. 演示 GIF / 录屏（可选改进）
+**核心亮点**
 
-- 现成可用：`docs/screenshots/demo-slideshow.gif`（4 张成品图的 slide）。
-- 更好的版本：`Win + G`（Xbox Game Bar）录 30–60 秒 MP4 → `raw-demo.mp4`，我转成 GIF。
+```text
+Pin any as-of date — past, future, or BC — from the chat header or with /pin.
+Restricted evidence: only dated sources inside [as_of − span, as_of]; undated sources are rejected.
+Anchor echo: the first reply must confirm the active window; a missing echo gets one nudge.
+web_search results filtered by publication date, with an explicit exclusion note.
+Deterministic [TIME FACT] narration for long silent background jobs.
+Read-only time_pin_status tool so the agent can inspect its own window; default mode injects nothing.
+```
 
-## 6. 提交步骤
+**使用场景**
 
-1. 打开 <https://cordis.run/submit> 并登录；
-2. 填 §2 的英文文案，上传 icon + 截图（若有分类/标签也按 §2 选）；
-3. 有反链就填反链（快速通道），没有就等人工审核；
-4. 提交后把结果页/邮件里的状态告诉我，我更新 `PUBLISH.md` 的发布记录并补 README 的截图引用。
+```text
+Historical perspective: "What did the web look like in 2000? Use only sources published before 2000."
+Freshness bound: "Only the last 7 days of information for this market question."
+Future or fiction framing: "Reason from 3000 CE as a setting — label speculation as speculation."
+Long tasks: get a deterministic status fact when a background job goes quiet.
+```
+
+**常见问题**
+
+```text
+Q: Does it make the model forget the future?
+A: No — evidence isolation, not amnesia. It constrains what may be used as evidence and requires an explicit window statement; it cannot erase training knowledge.
+
+Q: What gets filtered?
+A: In restricted mode, web_search results: undated sources and sources outside the window are dropped with a note.
+
+Q: Does default mode change anything?
+A: No. Default mode injects nothing and filters nothing.
+
+Q: Where do I configure it?
+A: Plugins → Installed → dsh-time-pin → Configure. Restart DSH once after installing; after that, settings apply live.
+```
+
+## 提交后
+
+把结果（审核中 / 已发布 / 拒绝原因）告诉维护者，更新 `PUBLISH.md` 记录；若被拒，按原因改材料重提。
