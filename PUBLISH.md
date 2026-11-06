@@ -60,6 +60,9 @@ npm publish --dry-run             # 检查 registry / tag / access
 
 ## cordis.run 上架（已提交，审核中）
 
+> 其他社区索引/分发渠道（dshfind、awesome-dsh-plugin、dshpluginhub 等）的状态与待办见
+> [`INDEXING.md`](INDEXING.md)。
+
 提交入口：<https://cordis.run/submit> ｜ 表单：5 步（网址 / cordis 插件信息 / 基本信息·图片 / 分类标签 / 富内容）
 
 - **状态**：`审核中`（2026-11-04 提交，人工审核队列；未提供反链，因此不走 24h 快速通道）
