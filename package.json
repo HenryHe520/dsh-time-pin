@@ -1,6 +1,6 @@
 {
   "name": "dsh-time-pin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Time Anchor (时间锚定) — pin the agent's \"as of\" clock and give every conversation a lookback evidence window (past, future, or BC), plus deterministic narration of long silent tasks.",
   "type": "module",
   "main": "./lib/index.js",
@@ -21,7 +21,10 @@
     "DESIGN.md",
     "SPIKE.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "screenshots.json",
+    "docs/screenshots/shot-*.png",
+    "docs/screenshots/cover-16x9.png"
   ],
   "scripts": {
     "test": "node --test tests/window.test.mjs tests/fold.test.mjs tests/evidence.test.mjs tests/silence.test.mjs tests/client.dom.test.mjs tests/host-wiring.test.mjs tests/host-schema.test.mjs",
@@ -68,12 +71,35 @@
     "zod": "^4.0.0"
   },
   "peerDependenciesMeta": {
-    "@deepseek-ai/cordis": { "optional": true },
-    "@deepseek-ai/schemastery": { "optional": true },
-    "@deepseek-ai/dsh-llm": { "optional": true },
-    "@deepseek-ai/dsh-session": { "optional": true },
-    "@deepseek-ai/dsh-session-projection": { "optional": true },
-    "@deepseek-ai/dsh-tools": { "optional": true },
-    "zod": { "optional": true }
-  }
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-session": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-session-projection": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HenryHe520/dsh-time-pin.git"
+  },
+  "homepage": "https://github.com/HenryHe520/dsh-time-pin#readme",
+  "bugs": {
+    "url": "https://github.com/HenryHe520/dsh-time-pin/issues"
+  },
+  "author": "HenryHe520"
 }

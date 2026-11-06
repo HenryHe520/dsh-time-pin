@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.1.1] - 2026-11-06
+
+Packaging and documentation release; **no runtime behaviour changes**. `0.1.0`
+remains functionally identical.
+
+### Added
+
+- `repository`, `homepage`, `bugs` and `author` in `package.json`, so the npm
+  package links back to its GitHub repository (the community plugin index only
+  maps a package to a repository when this field is present).
+- `screenshots.json` for marketplace storefronts (4 screenshots, relative paths
+  inside this repository).
+- The npm package now ships `docs/screenshots/shot-*.png` and
+  `docs/screenshots/cover-16x9.png`, so the README's screenshot section renders
+  on npmjs.com.
+
+### Changed
+
+- README (EN/ZH): npm and GitHub links near the title, plus a Screenshots
+  section; the npm install section no longer says "once published".
+- Repository topics `dsh-plugin`, `dsh`, `deepseek-harness`, `cordis`,
+  `time-anchor`, `as-of`, `evidence`, `plugin` (discovery only).
+
 ## [0.1.0] - 2026-11-03
 
 First public release: the time window (pinned as-of + lookback evidence window)
