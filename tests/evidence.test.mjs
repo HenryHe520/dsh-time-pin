@@ -146,16 +146,30 @@ test('parsePublishedAt: result is always a whole civil day instant', () => {
 // filterWebSearchValue
 // ---------------------------------------------------------------------------
 
-test('filterWebSearchValue: endpoints are inclusive and the value stays identical', () => {
+test('filterWebSearchValue: endpoints are inclusive', () => {
   const value = webValue(
     [source('1990-01-01', 'lower'), source('1995-06-01', 'middle'), source('2000-01-01', 'upper')],
     'three dated sources',
   );
   const result = filterWebSearchValue(value, PINNED_1990_2000, NOW);
-  assert.equal(result.value, value, 'identity must be preserved when nothing is filtered');
   assert.equal(result.kept, 3);
   assert.equal(result.excludedUndated, 0);
   assert.equal(result.excludedOutside, 0);
+  assert.deepEqual(
+    result.value.sources.map((entry) => entry.url),
+    ['https://example.test/lower', 'https://example.test/middle', 'https://example.test/upper'],
+  );
+});
+
+test('filterWebSearchValue: an untouched source list without a summary keeps identity', () => {
+  const value = webValue([
+    source('1990-01-01', 'lower'),
+    source('1995-06-01', 'middle'),
+    source('2000-01-01', 'upper'),
+  ]);
+  const result = filterWebSearchValue(value, PINNED_1990_2000, NOW);
+  assert.equal(result.value, value, 'identity must be preserved when nothing changed');
+  assert.equal(result.kept, 3);
 });
 
 test('filterWebSearchValue: drops out-of-window and undated sources with an exact note', () => {
@@ -179,8 +193,21 @@ test('filterWebSearchValue: drops out-of-window and undated sources with an exac
   assert.equal(result.value.truncated, false);
   assert.equal(
     result.value.content,
-    'Provider answer.\n[TIME PIN] 已排除 2 条无日期来源、2 条窗口外来源（时间窗 1990-01-01 至 2000-01-01）。',
+    '[TIME PIN] 受限模式：检索服务商的自动摘要不参与取证；已排除 2 条无日期来源、2 条窗口外来源（时间窗 1990-01-01 至 2000-01-01）。',
   );
+  assert.doesNotMatch(result.value.content, /Provider answer/);
+});
+
+test('filterWebSearchValue: drops the provider summary even when every source survives', () => {
+  const value = webValue([source('1995-01-01', 'kept')], 'Provider answer that cites a 2007 launch.');
+  const result = filterWebSearchValue(value, PINNED_1990_2000, NOW);
+  assert.notEqual(result.value, value, 'the value is rewritten to drop the summary');
+  assert.equal(result.excludedUndated, 0);
+  assert.equal(result.excludedOutside, 0);
+  assert.equal(result.value.sources.length, 1);
+  assert.doesNotMatch(result.value.content, /2007|Provider answer/);
+  assert.match(result.value.content, /自动摘要不参与取证/);
+  assert.match(result.value.content, /1990-01-01 至 2000-01-01/);
 });
 
 test('filterWebSearchValue: creates content when the provider answer is absent', () => {
@@ -207,18 +234,19 @@ test('filterWebSearchValue: zero usable evidence gets the explicit note', () => 
   assert.doesNotMatch(result.value.content, /Provider answer/);
 });
 
-test('filterWebSearchValue: is byte-stable across repeated calls', () => {
+test('filterWebSearchValue: repeated filtering converges to the same bytes', () => {
   const value = webValue(
     [source('1980-01-01', 'outside'), source('1995-01-01', 'kept'), source(undefined, 'undated')],
     'Answer.',
   );
   const first = filterWebSearchValue(value, PINNED_1990_2000, NOW);
-  const second = filterWebSearchValue(value, PINNED_1990_2000, NOW);
-  assert.deepEqual(first, second);
-  assert.equal(first.value.content, second.value.content);
-  // Filtering the already-filtered value again changes nothing.
-  const third = filterWebSearchValue(first.value, PINNED_1990_2000, NOW);
-  assert.equal(third.value, first.value);
+  assert.doesNotMatch(first.value.content, /Answer\./);
+  // A second pass drops nothing but normalises the note once more; from there
+  // on the value is byte-stable and returned by identity.
+  const second = filterWebSearchValue(first.value, PINNED_1990_2000, NOW);
+  const third = filterWebSearchValue(second.value, PINNED_1990_2000, NOW);
+  assert.equal(third.value, second.value);
+  assert.equal(second.value.content, third.value.content);
 });
 
 test('filterWebSearchValue: unrestricted windows leave the value untouched', () => {

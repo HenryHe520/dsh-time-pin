@@ -179,7 +179,12 @@ the window (plus, for time facts, the due facts). That makes it byte-stable.
   the first reply → one `[TIME PIN · ANCHOR]` reminder at the start of the next
   turn (never between tool calls of the same turn), for at most two reminders
   per window signature; after that the UI keeps an "unconfirmed" badge and the
-  turn continues. Anchoring never blocks a turn.
+  turn continues. Anchoring never blocks a turn. The echo is verified
+  **semantically, not by prefix** (`hasAnchorEcho`): the marker plus the echoed
+  date plus the echoed span must all equal the active window (date-format
+  variants the `/pin` parser accepts are tolerated, and a clock-following window
+  must echo `默认` / `default`). A wrong date, a wrong span, or a truncated line
+  does not count as confirmation.
 - **Token cost**: default mode = 0 tokens; restricted mode = one block per
   window change. This is the product-level answer to the runtime-context
   snapshot dedupe constraint recorded in SPIKE.md.
@@ -195,12 +200,15 @@ In restricted mode the Host rewrites the structured value of `web_search` at
 2. Sources dated inside `[as_of − span, as_of]` are kept; sources dated outside
    are dropped; sources with no parseable date are dropped (product decision:
    *any credible source states its date*).
-3. One byte-stable note is appended to `value.content` saying how many sources
-   were excluded and for which reason, plus the window bounds. If no dated
-   source remains, the note tells the model to say plainly that the window has
-   no usable dated evidence.
-4. If nothing changed, the original value object is returned unchanged (identity
-   preserved) so downstream consumers see no modification.
+3. The provider-generated `content` summary is **dropped** in restricted mode
+   (it is not a dated source and may restate filtered or truncated results); the
+   replacement `content` is one byte-stable note saying how many sources were
+   excluded and for which reason, plus the window bounds. If no dated source
+   remains, the note tells the model to say plainly that the window has no
+   usable dated evidence.
+4. When nothing was dropped and there is no provider summary to remove, the
+   original value object is returned unchanged (identity preserved) so
+   downstream consumers see no modification.
 
 Only `web_search` is filtered in 0.1.0. Memory entries and workspace files are
 not filtered (P1). Prompt-supplied text has no machine date and is not evidence

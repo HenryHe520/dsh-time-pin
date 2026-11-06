@@ -11,8 +11,27 @@ Nothing yet.
 
 ## [0.1.1] - 2026-11-06
 
-Packaging and documentation release; **no runtime behaviour changes**. `0.1.0`
-remains functionally identical.
+Packaging and documentation release, plus two correctness fixes; **no change to
+the command surface or the configuration schema**.
+
+### Fixed
+
+- **Restricted-mode search summaries no longer leak out-of-window material.**
+  `filterWebSearchValue` used to keep the provider's generated `content` and only
+  append an exclusion note, so a summary could still mention sources (or
+  truncated results) outside the window. In restricted mode the provider summary
+  is now dropped outright and replaced with one deterministic `[TIME PIN]` note;
+  only the kept sources and their dates reach the model. `0.1.0`'s
+  `docs/screenshots`-era behaviour (append-only note) is gone.
+- **The anchor echo is now verified as a whole line, not by a 12-character
+  prefix.** `hasAnchorEcho` previously accepted any line starting with the
+  marker plus a date prefix, so `时间窗：2000-01-05 · 前99年` passed for a
+  `2000-01-01 · 前10年` window, and the English form even accepted
+  `Time window: 2`. The check now parses the echoed date and span (accepting the
+  date forms `/pin` accepts) and requires both to equal the active window;
+  clock-following windows must echo `默认` / `default`. New
+  `tests/text.test.mjs` covers correct, wrong-date, wrong-span, truncated,
+  BC, unlimited-span and locale cases.
 
 ### Added
 
@@ -24,13 +43,23 @@ remains functionally identical.
 - The npm package now ships `docs/screenshots/shot-*.png` and
   `docs/screenshots/cover-16x9.png`, so the README's screenshot section renders
   on npmjs.com.
+- `scripts/preflight.mjs` (`npm run preflight`): checks the required files, the
+  version/CHANGELOG agreement and the packaged file list (screenshots in, raw
+  captures and temp files out).
+- GitHub Actions workflow (`.github/workflows/ci.yml`): runs the test suite and
+  the preflight check on every push and pull request, on Node 20/22/24, and
+  prints the skip reasons instead of hiding them.
 
 ### Changed
 
 - README (EN/ZH): npm and GitHub links near the title, plus a Screenshots
-  section; the npm install section no longer says "once published".
+  section; the npm install section no longer says "once published". The
+  default-mode paragraph now says that the **time window** injects nothing while
+  silent-job narration is a separate, default-on feature.
 - Repository topics `dsh-plugin`, `dsh`, `deepseek-harness`, `cordis`,
   `time-anchor`, `as-of`, `evidence`, `plugin` (discovery only).
+- Test suite: 133 tests (121 pass, 12 skipped in a bare checkout without the
+  Harness packages).
 
 ## [0.1.0] - 2026-11-03
 

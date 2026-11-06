@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-`npm` [dsh-time-pin@0.1.0](https://www.npmjs.com/package/dsh-time-pin) ·
+`npm` [dsh-time-pin](https://www.npmjs.com/package/dsh-time-pin) ·
 `GitHub` [HenryHe520/dsh-time-pin](https://github.com/HenryHe520/dsh-time-pin)
 
 **Pin the agent's "now" to a point in time and give the conversation a lookback
@@ -16,7 +16,10 @@ window change, which window it may reason from and which evidence rules apply;
 `web_search` results are filtered to *dated* sources inside that window, and the
 first reply must echo the active window. A second capability narrates
 long-running silent **background** jobs with deterministic `[TIME FACT]` facts.
-In the default mode the plugin injects nothing and changes nothing.
+In the default time-window mode the plugin injects nothing and filters nothing.
+The silent-job narration is a separate feature, enabled by default and
+independent of the time window; it never filters anything and can be turned off
+on the plugin's Configure page.
 
 > **Honest disclaimer:** this is **evidence isolation, not model amnesia**. The
 > model may still know about events after `as_of`; Time Anchor constrains what may
@@ -262,11 +265,13 @@ must begin with the confirmation line, for example:
 时间窗：2000-01-01 · 前10年
 ```
 
-(English prompt: `Time window: 2000-01-01 · last 10 years`.) If the echo is
-missing or wrong, the plugin appends one short correction at the start of the
-next turn and asks for the echo again — at most twice per window. After that the
-UI keeps an "unconfirmed" marker and the conversation continues; anchoring never
-blocks a turn.
+(English prompt: `Time window: 2000-01-01 · last 10 years`.) The echo is checked
+as a whole, not by prefix: the marker, the exact date and the exact span all
+have to match (date-format variants such as `2000/01/01` or `2000年1月1日` are
+tolerated). If the echo is missing or wrong, the plugin appends one short
+correction at the start of the next turn and asks for the echo again — at most
+twice per window. After that the UI keeps an "unconfirmed" marker and the
+conversation continues; anchoring never blocks a turn.
 
 **Evidence filtering.** In restricted mode, `web_search` results are rewritten
 before the model sees them:
@@ -276,10 +281,14 @@ before the model sees them:
   date is inside `[as_of − span, as_of]`, endpoints included;
 - a source with no parseable date is excluded (the product rule is: a credible
   source states its date);
-- a note is appended saying how many sources were excluded and why, plus the
+- the provider's own generated summary (`content`) is **dropped** in restricted
+  mode: it is not a dated source, and it can restate sources that were filtered
+  out (or were never listed when the provider truncated its results). The
+  replacement note states how many sources were excluded and why, plus the
   active window; when nothing dated remains, the note tells the model to state
   that the window has no usable dated evidence instead of inventing some;
-- when nothing changed, the original tool value is passed through untouched.
+- when nothing was filtered and there is no provider summary to remove, the
+  original tool value is passed through untouched.
 
 **Leaving restricted mode** injects one short notice that filtering no longer
 applies, then no further time-pin text is sent.
@@ -487,8 +496,9 @@ existing conversation's window intact.
 ## Development
 
 ```sh
-npm test                    # 121 tests: 109 pass, 12 skipped in a plain checkout
+npm test                    # 133 tests: 121 pass, 12 skipped in a plain checkout
 npm run test:client         # 34 client lazy-bundle smoke tests (DOM stub)
+npm run preflight           # release checks: files, version/CHANGELOG, npm pack list
 node --check lib/index.js   # (and the other modules)
 ```
 

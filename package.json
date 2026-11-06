@@ -27,9 +27,11 @@
     "docs/screenshots/cover-16x9.png"
   ],
   "scripts": {
-    "test": "node --test tests/window.test.mjs tests/fold.test.mjs tests/evidence.test.mjs tests/silence.test.mjs tests/client.dom.test.mjs tests/host-wiring.test.mjs tests/host-schema.test.mjs",
+    "test": "node --test tests/window.test.mjs tests/fold.test.mjs tests/text.test.mjs tests/evidence.test.mjs tests/silence.test.mjs tests/client.dom.test.mjs tests/host-wiring.test.mjs tests/host-schema.test.mjs",
     "test:client": "node --test tests/client.dom.test.mjs",
-    "test:host": "node --test tests/host-wiring.test.mjs tests/host-schema.test.mjs"
+    "test:host": "node --test tests/host-wiring.test.mjs tests/host-schema.test.mjs",
+    "preflight": "node scripts/preflight.mjs",
+    "verify": "npm test && npm run preflight"
   },
   "keywords": [
     "dsh",

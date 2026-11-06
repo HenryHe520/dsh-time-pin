@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Test
+        run: node --test --test-reporter=tap tests/*.test.mjs | tee test.tap
+
+      - name: Surface skipped tests
+        if: always()
+        run: |
+          echo "Skipped cases (reported, never silently dropped):"
+          grep -E '^# (SKIP|skip)' test.tap || echo "(none)"
+
+      - name: Release preflight
+        run: npm run preflight
