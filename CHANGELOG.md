@@ -28,6 +28,11 @@ pin as well as before it.
 - **Both sides empty = unbounded range** (the as-of is kept; only the bounds are
   unrestricted). Without an as-of, both sides empty still returns to default
   mode. An explicit `不限` side is honoured (e.g. `前10年/后不限`).
+- **A zero side needs no unit**: `0` (also `0天` / `0年`) means "do not expand
+  this side", so the window boundary sits on the as-of day. This restores the
+  0.1.x lookback-only window when written explicitly as
+  `/pin 2000-01-01 前10年 后0` → `[1990-01-01, 2000-01-01]`. The labels render
+  zero without a unit (`前后各0`, `前10年/后0`, `±0`).
 - **`future view` now keys off the window, not just the as-of**: a window whose
   upper bound reaches past today (a future as-of *or* an after-side crossing
   today) gets the `[FUTURE VIEW]` block.
@@ -43,7 +48,7 @@ pin as well as before it.
 - Existing recorded `/pin <as-of> <span>` commands replay under the new mirror
   rule (a resumed 0.1.x conversation shows the symmetric window), which is
   inherent to deriving state from the session log.
-- Tests: 141 total — 129 pass, 12 skipped in a plain checkout.
+- Tests: 144 total — 132 pass, 12 skipped in a plain checkout.
 
 ### Fixed (carried over, still shipped)
 

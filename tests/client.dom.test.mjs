@@ -980,6 +980,31 @@ test('chip renders the localized zh label with the per-mode glyph', () => {
 	assert.ok(collectText(fallback).join('').includes('🕐'));
 });
 
+test('chip labels a zero side without a unit', () => {
+	const zeroView = pinnedView({
+		before: '10y',
+		after: '0d',
+		beforeInput: '10年',
+		afterInput: '0',
+		rangeLabel: '前10年/后0',
+		chipLabel: '2000-01-01 · 前10年/后0',
+	});
+	assert.ok(collectText(chipButtonOf(renderChip(zeroView))).join('').includes('2000-01-01 · 前10年/后0'));
+	assert.ok(
+		collectText(chipButtonOf(renderChip(zeroView, { t: tEn }))).join('').includes('2000-01-01 · last 10 years / next 0'),
+	);
+	const bothZero = pinnedView({
+		before: '0d',
+		after: '0d',
+		beforeInput: '0',
+		afterInput: '0',
+		rangeLabel: '前后各0',
+		chipLabel: '2000-01-01 · 前后各0',
+	});
+	assert.ok(collectText(chipButtonOf(renderChip(bothZero))).join('').includes('2000-01-01 · 前后各0'));
+	assert.ok(collectText(chipButtonOf(renderChip(bothZero, { t: tEn }))).join('').includes('2000-01-01 · ±0'));
+});
+
 test('chip renders future mode from asOfDay plus the browser day', () => {
 	const future = chipButtonOf(
 		renderChip(
@@ -1165,6 +1190,18 @@ test('panel composes the /pin line for every as-of/range form', async () => {
 			beforeInput: '',
 			afterInput: '5年',
 			expected: '/pin 2000-01-01 后5年',
+		},
+		{
+			asOfInput: '2000-01-01',
+			beforeInput: '10年',
+			afterInput: '0',
+			expected: '/pin 2000-01-01 前10年 后0',
+		},
+		{
+			asOfInput: '2000-01-01',
+			beforeInput: '0',
+			afterInput: '0',
+			expected: '/pin 2000-01-01 前0 后0',
 		},
 		{
 			asOfInput: '公元前200年',

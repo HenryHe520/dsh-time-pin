@@ -162,6 +162,7 @@ Other first things to try:
 | `/pin` | Show the current mode and window (alias: `/pin status`). |
 | `/pin 2000` | Pin 1 January 2000; the current range is kept. |
 | `/pin 2000-01-01 前10年 后5年` | Asymmetric range: ten years before and five years after the pin. |
+| `/pin 2000-01-01 前10年 后0` | Lookback-only window: 1990-01-01 through 2000-01-01 (`0` needs no unit). |
 | `/pin 7天` | Keep the default (clock-following) time point with ±7 days → `Default · ±7 days` (`默认 · 前后各7天`). |
 | `/pin 3000-01-01` | Future view: the model is told it does not know the period and must label speculation. |
 | `/pin 公元前200年 前20年` | BC window; no year 0 exists, so 1 BC is followed by AD 1. |
@@ -189,7 +190,9 @@ A range token may carry a side prefix: `前` / `近` / `last` / `past` (before t
 as-of) or `后` / `next` / `after` (after the as-of). With one side supplied the
 other mirrors it; with two sides they are positional (before, after) unless the
 prefixes say otherwise; a slash form works too (`前10年/后5年`). `不限` on both
-sides means an unbounded range.
+sides means an unbounded range. A bare `0` sets that side's boundary to the
+as-of day (no unit needed), so `/pin 2000-01-01 前10年 后0` is the lookback-only
+window `[1990-01-01, 2000-01-01]`.
 
 Aliases: `status` / `状态` / `?` / `help` for a status query; `off` / `清空` /
 `默认` / `clear` / `reset` to clear. A range-only line keeps the default,
@@ -229,15 +232,17 @@ and punctuation are normalized (`３０００` works).
 | Form | Examples | Interpreted as |
 |---|---|---|
 | Unlimited (default) | `不限`, `unlimited`, `all`, `none`, `-`, `—` | no boundary on that side |
+| Zero (no unit) | `0`, `0天`, `0年` | that side is not expanded: the window boundary sits on the as-of day |
 | Days | `7天`, `30 天`, `7d`, `7 days` | `as_of ∓ N days` |
 | Months | `6个月`, `6mo`, `6 months` | `as_of ∓ N calendar months` (day clamped, e.g. 31 Mar − 1 month = 29 Feb) |
 | Years | `10年`, `100年`, `10y`, `10 years` | `as_of ∓ N calendar years` |
 
 Both sides accept the same formats; the panel has one field for each side. If
 only one side is given the other mirrors it; if neither is given the range is
-unbounded on both sides. Limits: N must be an integer ≥ 1; at most 3,650,000
-days, 120,000 months, or 10,000 years. `0天`, `-1年`, `10光年` and other unknown
-units are rejected with an inline error.
+unbounded on both sides. `0` is unitless by design and pins that side to the
+as-of day, so `前10年 后0` is the classic "only look back" window. Limits: N must
+be an integer ≥ 0; at most 3,650,000 days, 120,000 months, or 10,000 years.
+`-1年`, `10光年` and other unknown units are rejected with an inline error.
 
 ## Behavior
 
@@ -511,7 +516,7 @@ existing conversation's window intact.
 ## Development
 
 ```sh
-npm test                    # 141 tests: 129 pass, 12 skipped in a plain checkout
+npm test                    # 144 tests: 132 pass, 12 skipped in a plain checkout
 npm run test:client         # 34 client lazy-bundle smoke tests (DOM stub)
 npm run preflight           # release checks: files, version/CHANGELOG, npm pack list
 node --check lib/index.js   # (and the other modules)

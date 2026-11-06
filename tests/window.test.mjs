@@ -90,7 +90,7 @@ test('parseAsOf rejects invalid dates with actionable codes', () => {
   }
 });
 
-test('parseSpan covers day/month/year and unlimited', () => {
+test('parseSpan covers day/month/year, zero and unlimited', () => {
   assert.deepEqual(parseSpan('不限'), { ok: true, span: null });
   assert.deepEqual(parseSpan(''), { ok: true, span: null });
   assert.deepEqual(parseSpan('-'), { ok: true, span: null });
@@ -100,7 +100,11 @@ test('parseSpan covers day/month/year and unlimited', () => {
   assert.deepEqual(parseSpan('10年'), { ok: true, span: { unit: 'year', amount: 10 } });
   assert.deepEqual(parseSpan('100年'), { ok: true, span: { unit: 'year', amount: 100 } });
   assert.deepEqual(parseSpan('7d'), { ok: true, span: { unit: 'day', amount: 7 } });
-  for (const bad of ['0天', '-1年', '10光年', 'abc']) {
+  // Zero needs no unit: it means "this side is not expanded".
+  for (const zero of ['0', '0天', '0年', '0 个月']) {
+    assert.deepEqual(parseSpan(zero), { ok: true, span: { unit: 'day', amount: 0 } }, zero);
+  }
+  for (const bad of ['-1年', '10光年', 'abc']) {
     assert.equal(parseSpan(bad).ok, false, bad);
   }
 });
@@ -195,6 +199,28 @@ test('future, past and label modes follow the window bounds', () => {
   assert.equal(windowMode(crossing, NOW), 'future');
 });
 
+test('a zero side pins the boundary to the as-of day', () => {
+  const zero = { unit: 'day', amount: 0 };
+  const lookbackOnly = { asOf: CE(2000), before: { unit: 'year', amount: 10 }, after: zero };
+  assert.deepEqual(windowBounds(lookbackOnly, NOW), {
+    lower: toDayNumber(CE(1990)),
+    upper: toDayNumber(CE(2000)),
+  });
+  assert.equal(dayInWindow(toDayNumber(CE(2000)), lookbackOnly, NOW), true);
+  assert.equal(dayInWindow(toDayNumber(CE(2000, 1, 2)), lookbackOnly, NOW), false);
+  assert.equal(formatRangeZh(lookbackOnly), '前10年/后0');
+  assert.equal(formatRangeEn(lookbackOnly), 'last 10 years / next 0');
+  const bothZero = { asOf: CE(2000), before: zero, after: zero };
+  assert.deepEqual(windowBounds(bothZero, NOW), {
+    lower: toDayNumber(CE(2000)),
+    upper: toDayNumber(CE(2000)),
+  });
+  assert.equal(formatRangeZh(bothZero), '前后各0');
+  assert.equal(formatRangeEn(bothZero), '±0');
+  assert.equal(formatWindowLabelZh(bothZero, NOW), '2000-01-01 · 前后各0');
+  assert.equal(windowSignature(bothZero, NOW), 'ce:2000-01-01|0d|0d');
+});
+
 test('asymmetric range labels', () => {
   const window = {
     asOf: CE(2000),
@@ -266,7 +292,7 @@ test('windowFromInput mirrors a single side and names the failing field', () => 
     window: { asOf: null, before: null, after: null },
   });
   assert.equal(windowFromInput('2026-02-30', '10年', '').field, 'asOf');
-  assert.equal(windowFromInput('2000-01-01', '0天', '').field, 'before');
+  assert.equal(windowFromInput('2000-01-01', '-1年', '').field, 'before');
   assert.equal(windowFromInput('2000-01-01', '10年', 'abc').field, 'after');
 });
 
@@ -336,6 +362,19 @@ test('parsePinArgs implements the split-range /pin grammar', () => {
     before: TEN,
     after: null,
   });
+  // A zero side needs no unit and pins that boundary to the as-of day.
+  assert.deepEqual(parsePinArgs('2000-01-01 前10年 后0'), {
+    kind: 'window',
+    asOf: CE(2000),
+    before: TEN,
+    after: { unit: 'day', amount: 0 },
+  });
+  assert.deepEqual(parsePinArgs('2000-01-01 0'), {
+    kind: 'window',
+    asOf: CE(2000),
+    before: { unit: 'day', amount: 0 },
+    after: { unit: 'day', amount: 0 },
+  });
   // Range-only input keeps the clock-following as-of.
   assert.deepEqual(parsePinArgs('7天'), {
     kind: 'ranges',
@@ -348,6 +387,6 @@ test('parsePinArgs implements the split-range /pin grammar', () => {
     after: { unit: 'day', amount: 30 },
   });
   assert.deepEqual(parsePinArgs('不限'), { kind: 'ranges', before: null, after: null });
-  assert.equal(parsePinArgs('2000-01-01 0天').kind, 'invalid');
+  assert.equal(parsePinArgs('2000-01-01 0天').kind, 'window');
   assert.equal(parsePinArgs('abc').kind, 'invalid');
 });

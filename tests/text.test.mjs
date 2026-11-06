@@ -117,6 +117,20 @@ test('hasAnchorEcho: BC window passes with the BC date form', () => {
   assert.equal(hasAnchorEcho('时间窗：公元前220年 · 前后各20年\n正文。', BC, 'zh'), false);
 });
 
+test('hasAnchorEcho: a zero side echoes without a unit', () => {
+  const zero = { unit: 'day', amount: 0 };
+  const lookbackOnly = { asOf: CE(2000, 1, 1), before: TEN, after: zero };
+  assert.equal(hasAnchorEcho('时间窗：2000-01-01 · 前10年/后0\n正文。', lookbackOnly, 'zh'), true);
+  assert.equal(
+    hasAnchorEcho('Time window: 2000-01-01 · last 10 years / next 0\nBody.', lookbackOnly, 'en'),
+    true,
+  );
+  const bothZero = { asOf: CE(2000, 1, 1), before: zero, after: zero };
+  assert.equal(hasAnchorEcho('时间窗：2000-01-01 · 前后各0\n正文。', bothZero, 'zh'), true);
+  assert.equal(hasAnchorEcho('时间窗：2000-01-01 · 前0/后0\n正文。', bothZero, 'zh'), true);
+  assert.equal(hasAnchorEcho('时间窗：2000-01-01 · 前后各1\n正文。', bothZero, 'zh'), false);
+});
+
 test('hasAnchorEcho: empty or non-string input fails closed', () => {
   for (const probe of ['', '   ', null, undefined, 42]) {
     assert.equal(hasAnchorEcho(probe, PINNED, 'zh'), false);
