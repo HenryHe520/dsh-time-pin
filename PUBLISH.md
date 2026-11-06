@@ -1,29 +1,35 @@
 # PUBLISH · dsh-time-pin
 
-## 0.1.1（本地已就绪，待发布）
-
-- 内容：两处正确性修复（受限模式丢弃搜索服务商摘要、anchor echo 改为整行语义校验）+ 工程化
-  （`repository` 等元数据、npm 包内置截图与 `screenshots.json`、GitHub Actions CI、
-  `scripts/preflight.mjs`）。详见 `CHANGELOG.md` 的 `[0.1.1]` 段。
-- 验证：`npm test` → 133 tests（121 pass / 0 fail / 12 skipped）；`npm run preflight` → OK
-  （25 files, ~534 KiB）。
-- 发布命令（当前机器 npm token 已过期，需先 `npm login`）：
-  `npm publish --otp=<code>` 或 `npm stage publish` + `npm stage approve`。
-
-## 已发布
+## 已发布（最新 0.1.1）
 
 | 项 | 值 |
 |---|---|
 | npm 包 | `dsh-time-pin` |
+| 已发布版本 | `0.1.1` |
+| dist-tag | `latest` → `0.1.1` |
+| 发布时间 | 2026-11-06 20:26 (本地) ｜ registry `time.modified` = 2026-11-06T12:26:24Z |
+| 发布账号 | `henryhe520` |
+| 发布方式 | `npm stage publish` → `npm stage approve`（staged id `1c5ac2ef-3854-4b60-ae18-ed60b863a7fe`） |
+| shasum | `132309f1ab076ded8d8536a7eb63be5660012962`（与本地 `npm pack` 的 `dsh-time-pin-0.1.1.tgz` 完全一致） |
+| 包地址 | https://www.npmjs.com/package/dsh-time-pin |
+| tarball | https://registry.npmjs.org/dsh-time-pin/-/dsh-time-pin-0.1.1.tgz |
+| Git tag / Release | `v0.1.1` ｜ https://github.com/HenryHe520/dsh-time-pin/releases/tag/v0.1.1 |
+| GitHub 仓库 | https://github.com/HenryHe520/dsh-time-pin（`repository` 字段已链回） |
+| CI | https://github.com/HenryHe520/dsh-time-pin/actions/runs/42216225528（Node 20/22/24 全绿） |
+| 本机 profile | desktop 已升级到 `dsh-time-pin@0.1.1`（**重启 DSH 一次生效**） |
+
+0.1.1 内容：受限模式丢弃检索服务商摘要、anchor echo 改为整行语义校验、CI/preflight、
+npm 元数据与 README 截图（详见 `CHANGELOG.md`）。`0.1.0` 保留为历史版本。
+
+## 历史版本：0.1.0（2026-11-04）
+
+| 项 | 值 |
+|---|---|
 | 已发布版本 | `0.1.0` |
-| dist-tag | `latest` → `0.1.0` |
 | 发布时间 | 2026-11-04 11:22 (本地) |
 | 发布账号 | `henryhe520` |
-| 包地址 | https://www.npmjs.com/package/dsh-time-pin |
 | tarball | https://registry.npmjs.org/dsh-time-pin/-/dsh-time-pin-0.1.0.tgz |
-| GitHub 仓库 | https://github.com/HenryHe520/dsh-time-pin |
-| 市场素材 | `docs/screenshots/`（4 张 1280×720 成品图 + `icon-512.png` + slideshow GIF），已随 README 引用 |
-| 校验 | published tarball 与本地 19 个发布文件 **逐文件哈希一致**（0 差异） |
+| 校验 | 当时与本地 19 个发布文件逐文件哈希一致 |
 
 发布流程说明：这次用的是 npm 的 **staged publishing**（`npm stage publish` + `npm stage approve`），registry 里会先出现一个
 `0.0.0-stage` 占位版本，批准后真正的 `0.1.0` 才生效；`0.0.0-stage` 是 npm 的占位记录，不是产品版本。
