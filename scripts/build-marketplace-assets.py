@@ -173,7 +173,7 @@ def cover(chip: Image.Image, panel: Image.Image) -> Image.Image:
     draw.text((76, 283), "conversation a dated evidence window.", font=font(SEMI, 30), fill=(226, 234, 246))
 
     bullets = [
-        "Past, future or BC time points, plus a lookback span",
+        "Past, future or BC time points, plus a before/after range",
         "Restricted evidence: only dated sources inside the window",
         "Anchor echo, filtered web_search, silent-job time facts",
     ]
@@ -197,7 +197,7 @@ def cover(chip: Image.Image, panel: Image.Image) -> Image.Image:
     rounded_card(canvas, (px - 10, py - 10, px + panel_small.width + 10, py + panel_small.height + 10))
     canvas.paste(panel_small, (px, py))
 
-    draw.text((76, 664), "npm: dsh-time-pin@0.1.0   ·   github.com/HenryHe520/dsh-time-pin", font=font(REGULAR, 19), fill=(122, 146, 180))
+    draw.text((76, 664), "npm: dsh-time-pin@0.2.0   ·   github.com/HenryHe520/dsh-time-pin", font=font(REGULAR, 19), fill=(122, 146, 180))
     target = SHOTS / "cover-16x9.png"
     canvas.save(target, format="PNG", optimize=True)
     print(f"cover-16x9.png: {canvas.width}x{canvas.height}, {target.stat().st_size // 1024} KiB")
@@ -212,15 +212,15 @@ def main() -> int:
     outputs.append(compose(
         "shot-01-default.png",
         "A pinned clock in the conversation header",
-        "Default mode injects nothing and filters nothing — pin a point and a lookback span when you need one",
+        "Default mode injects nothing and filters nothing — pin a point and a range around it when you need one",
         chip_gallery(chip), 1.0,
     ))
 
     panel = raw["raw-02-panel"]
     outputs.append(compose(
         "shot-02-window-panel.png",
-        "Set a time point and a lookback span",
-        "Past, future or BC; one click applies it to this conversation",
+        "Set a time point and a range on both sides",
+        "Past, future or BC; leave one side empty and the other mirrors it",
         panel, 0.82,
     ))
 
@@ -231,7 +231,7 @@ def main() -> int:
     outputs.append(compose(
         "shot-03-command-receipts.png",
         "One command, one validator",
-        "/pin receipt for a pinned 2000-01-01 window and for a future 3000-01-01 view",
+        "/pin receipts for a restricted date window and for a future view",
         receipts, 1.0,
     ))
 
