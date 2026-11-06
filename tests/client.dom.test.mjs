@@ -481,12 +481,14 @@ function pinnedView(overrides = {}) {
 		modeBase: 'pinned',
 		asOf: 'ce:2000-01-01',
 		asOfDay: dayNumberOfCe(2000, 1, 1),
-		span: '10y',
+		before: '10y',
+		after: '10y',
 		asOfLabel: '2000-01-01',
-		spanLabel: '前10年',
-		chipLabel: '2000-01-01 · 前10年',
+		rangeLabel: '前后各10年',
+		chipLabel: '2000-01-01 · 前后各10年',
 		asOfInput: '2000-01-01',
-		spanInput: '10年',
+		beforeInput: '10年',
+		afterInput: '10年',
 		anchorPending: false,
 		lastOutputAt: null,
 		runStartedAt: null,
@@ -932,7 +934,7 @@ test('chip renders the localized zh label with the per-mode glyph', () => {
 	assert.equal(pinned.props['data-mode'], 'past');
 	const pinnedText = collectText(pinned).join('');
 	assert.ok(pinnedText.includes('🕰'), pinnedText);
-	assert.ok(pinnedText.includes('2000-01-01 · 前10年'), pinnedText);
+	assert.ok(pinnedText.includes('2000-01-01 · 前后各10年'), pinnedText);
 
 	const recent = chipButtonOf(
 		renderChip(
@@ -942,15 +944,17 @@ test('chip renders the localized zh label with the per-mode glyph', () => {
 				asOfDay: null,
 				asOfLabel: '默认',
 				asOfInput: '',
-				span: '7d',
-				spanInput: '7天',
-				spanLabel: '近7天',
-				chipLabel: '默认 · 近7天',
+				before: '7d',
+				after: '7d',
+				beforeInput: '7天',
+				afterInput: '7天',
+				rangeLabel: '前后各7天',
+				chipLabel: '默认 · 前后各7天',
 			}),
 		),
 	);
 	assert.equal(recent.props['data-mode'], 'recent');
-	assert.ok(collectText(recent).join('').includes('默认 · 近7天'));
+	assert.ok(collectText(recent).join('').includes('默认 · 前后各7天'));
 	assert.ok(collectText(recent).join('').includes('🕐'));
 
 	const fallback = chipButtonOf(
@@ -962,8 +966,11 @@ test('chip renders the localized zh label with the per-mode glyph', () => {
 				asOfDay: null,
 				asOfLabel: '默认',
 				asOfInput: '',
-				span: null,
-				spanInput: '',
+				before: null,
+				after: null,
+				beforeInput: '',
+				afterInput: '',
+				rangeLabel: '不限',
 				chipLabel: '默认 · 不限',
 			}),
 		),
@@ -981,9 +988,11 @@ test('chip renders future mode from asOfDay plus the browser day', () => {
 				asOfDay: todayDayNumber() + 1,
 				asOfLabel: '3000-01-01',
 				asOfInput: '3000-01-01',
-				span: null,
-				spanInput: '',
-				spanLabel: '不限',
+				before: null,
+				after: null,
+				beforeInput: '',
+				afterInput: '',
+				rangeLabel: '不限',
 				chipLabel: '3000-01-01 · 不限',
 			}),
 		),
@@ -995,11 +1004,20 @@ test('chip renders future mode from asOfDay plus the browser day', () => {
 
 test('chip label is localized in en from raw fields, not the host copy', () => {
 	const enChip = chipButtonOf(renderChip(pinnedView(), { t: tEn }));
-	assert.ok(collectText(enChip).join('').includes('2000-01-01 · last 10 years'));
+	assert.ok(collectText(enChip).join('').includes('2000-01-01 · ±10 years'));
 
 	const enDefault = chipButtonOf(
 		renderChip(
-			pinnedView({ modeBase: 'default', restricted: false, asOf: null, asOfDay: null, span: null, spanInput: '' }),
+			pinnedView({
+				modeBase: 'default',
+				restricted: false,
+				asOf: null,
+				asOfDay: null,
+				before: null,
+				after: null,
+				beforeInput: '',
+				afterInput: '',
+			}),
 			{ t: tEn },
 		),
 	);
@@ -1007,19 +1025,28 @@ test('chip label is localized in en from raw fields, not the host copy', () => {
 
 	const enRecent = chipButtonOf(
 		renderChip(
-			pinnedView({ modeBase: 'recent', asOf: null, asOfDay: null, asOfInput: '', span: '7d', spanInput: '7天' }),
+			pinnedView({
+				modeBase: 'recent',
+				asOf: null,
+				asOfDay: null,
+				asOfInput: '',
+				before: '7d',
+				after: '7d',
+				beforeInput: '7天',
+				afterInput: '7天',
+			}),
 			{ t: tEn },
 		),
 	);
-	assert.ok(collectText(enRecent).join('').includes('Default · last 7 days'));
+	assert.ok(collectText(enRecent).join('').includes('Default · ±7 days'));
 	assert.ok(!collectText(enRecent).join('').includes('近'));
 });
 
 test('chip falls back to the host chipLabel when raw fields are absent', () => {
 	const legacy = chipButtonOf(
-		renderChip({ chipLabel: '2000-01-01 · 前10年', asOfLabel: '2000-01-01', spanLabel: '前10年' }),
+		renderChip({ chipLabel: '2000-01-01 · 前后各10年', asOfLabel: '2000-01-01' }),
 	);
-	assert.ok(collectText(legacy).join('').includes('2000-01-01 · 前10年'));
+	assert.ok(collectText(legacy).join('').includes('2000-01-01 · 前后各10年'));
 });
 
 test('chip shows the anchor-pending dot and unconfirmed title', () => {
@@ -1031,10 +1058,12 @@ test('chip shows the anchor-pending dot and unconfirmed title', () => {
 test('chip opens the panel with prefilled localized fields', () => {
 	const panel = renderedPanelOf(renderChip(pinnedView(), {}, [true, null]));
 	const asOfInput = findElement(panel, (node) => node.props['data-time-pin-asof'] === true);
-	const spanInput = findElement(panel, (node) => node.props['data-time-pin-span'] === true);
+	const beforeInput = findElement(panel, (node) => node.props['data-time-pin-before'] === true);
+	const afterInput = findElement(panel, (node) => node.props['data-time-pin-after'] === true);
 	assert.equal(asOfInput.props.value, '2000-01-01');
-	assert.equal(spanInput.props.value, '10年');
-	assert.ok(collectText(panel).join('').includes('当前：2000-01-01 · 前10年'));
+	assert.equal(beforeInput.props.value, '10年');
+	assert.equal(afterInput.props.value, '10年');
+	assert.ok(collectText(panel).join('').includes('当前：2000-01-01 · 前后各10年'));
 
 	const enTree = reactStub.render(
 		surface.chip,
@@ -1046,7 +1075,7 @@ test('chip opens the panel with prefilled localized fields', () => {
 		},
 		[true, null],
 	);
-	assert.ok(collectText(renderedPanelOf(enTree)).join('').includes('Current: 2000-01-01 · last 10 years'));
+	assert.ok(collectText(renderedPanelOf(enTree)).join('').includes('Current: 2000-01-01 · ±10 years'));
 });
 
 test('panel exposes all six span presets with local tokens', () => {
@@ -1073,12 +1102,16 @@ test('panel exposes all six span presets with local tokens', () => {
 	assert.equal(collectText(d7En).join(''), '7 days');
 });
 
-test('the 不限 preset fills the field with the unlimited token', () => {
+test('the 不限 preset clears both range fields', () => {
 	const panel = renderedPanelOf(renderChip(pinnedView(), {}, [true, null]));
 	const none = findElement(panel, (node) => node.props['data-time-pin-preset'] === 'none');
 	reactStub.__updates = [];
 	none.props.onClick();
-	assert.ok(reactStub.__updates.includes(surface.zh['span.none']), JSON.stringify(reactStub.__updates));
+	assert.equal(
+		reactStub.__updates.filter((value) => value === '').length,
+		2,
+		JSON.stringify(reactStub.__updates),
+	);
 });
 
 test('the future warning appears once per session and is dismissible', () => {
@@ -1113,21 +1146,62 @@ test('the future warning appears once per session and is dismissible', () => {
 // Panel -> /pin line composition
 // ---------------------------------------------------------------------------
 
-test('panel composes the /pin line for every as-of/span form', async () => {
+test('panel composes the /pin line for every as-of/range form', async () => {
 	const cases = [
-		{ asOfInput: '2000-01-01', spanInput: '10年', expected: '/pin 2000-01-01 10年' },
-		{ asOfInput: '公元前200年', spanInput: '', expected: '/pin 公元前200年 不限' },
-		{ asOfInput: '3000', spanInput: '不限', expected: '/pin 3000 不限' },
-		{ asOfInput: '', spanInput: '7天', expected: '/pin 7天' },
-		{ asOfInput: '', spanInput: '不限', expected: '/pin off' },
-		{ asOfInput: '', spanInput: '', expected: '/pin off' },
+		{
+			asOfInput: '2000-01-01',
+			beforeInput: '10年',
+			afterInput: '10年',
+			expected: '/pin 2000-01-01 前10年 后10年',
+		},
+		{
+			asOfInput: '2000-01-01',
+			beforeInput: '10年',
+			afterInput: '',
+			expected: '/pin 2000-01-01 前10年',
+		},
+		{
+			asOfInput: '2000-01-01',
+			beforeInput: '',
+			afterInput: '5年',
+			expected: '/pin 2000-01-01 后5年',
+		},
+		{
+			asOfInput: '公元前200年',
+			beforeInput: '',
+			afterInput: '',
+			expected: '/pin 公元前200年 不限',
+		},
+		{
+			asOfInput: '3000',
+			beforeInput: '不限',
+			afterInput: '',
+			expected: '/pin 3000 前不限',
+		},
+		{
+			asOfInput: '',
+			beforeInput: '7天',
+			afterInput: '',
+			expected: '/pin 前7天',
+		},
+		{
+			asOfInput: '',
+			beforeInput: '',
+			afterInput: '30天',
+			expected: '/pin 后30天',
+		},
+		{ asOfInput: '', beforeInput: '', afterInput: '', expected: '/pin off' },
 	];
 
 	for (const entry of cases) {
 		const submitted = [];
 		let closed = 0;
 		const panel = renderPanel(
-			pinnedView({ asOfInput: entry.asOfInput, spanInput: entry.spanInput }),
+			pinnedView({
+				asOfInput: entry.asOfInput,
+				beforeInput: entry.beforeInput,
+				afterInput: entry.afterInput,
+			}),
 			async (line) => {
 				submitted.push(line);
 				return SUCCESS_RESULT;

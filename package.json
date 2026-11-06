@@ -1,6 +1,6 @@
 {
   "name": "dsh-time-pin",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Time Anchor (时间锚定) — pin the agent's \"as of\" clock and give every conversation a lookback evidence window (past, future, or BC), plus deterministic narration of long silent tasks.",
   "type": "module",
   "main": "./lib/index.js",

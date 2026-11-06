@@ -49,15 +49,16 @@ test('/pin sets the window and injects the block exactly once', () => {
   const state = pin('2000-01-01 10年');
   assert.equal(state.restricted, true);
   assert.equal(state.asOf, 'ce:2000-01-01');
-  assert.equal(state.span, '10y');
+  assert.equal(state.before, '10y');
+  assert.equal(state.after, '10y');
   assert.equal(state.anchorPending, true);
 
   const first = step(state, { turnStart: true });
   assert.equal(first.length, 1);
   assert.equal(first[0].form, 'snapshot');
   assert.match(first[0].text, /\[TIME PIN\]/);
-  assert.match(first[0].text, /\[1990-01-01, 2000-01-01\]/);
-  assert.match(first[0].text, /时间窗：2000-01-01 · 前10年/);
+  assert.match(first[0].text, /\[1990-01-01, 2010-01-01\]/);
+  assert.match(first[0].text, /时间窗：2000-01-01 · 前后各10年/);
 
   // The request header records the watermark: no second injection, no reminder
   // before the model has had a turn to echo.
@@ -68,7 +69,7 @@ test('/pin sets the window and injects the block exactly once', () => {
 
 test('anchor echo clears the pending flag; a missing echo earns at most two corrections', () => {
   const told = applyEvent(pin('2000-01-01 10年'), header());
-  const echoed = applyEvent(told, assistant('时间窗：2000-01-01 · 前10年\n这是回答。'));
+  const echoed = applyEvent(told, assistant('时间窗：2000-01-01 · 前后各10年\n这是回答。'));
   assert.equal(echoed.anchorPending, false);
   assert.equal(echoed.lastOutputAt, 1_003);
   assert.deepEqual(step(echoed, { turnStart: true, canRemind: () => true }), []);
@@ -84,7 +85,7 @@ test('anchor echo clears the pending flag; a missing echo earns at most two corr
   const firstReminder = step(missed, { turnStart: true, canRemind });
   assert.equal(firstReminder.length, 1);
   assert.match(firstReminder[0].text, /\[TIME PIN · ANCHOR\]/);
-  assert.match(firstReminder[0].text, /时间窗：2000-01-01 · 前10年/);
+  assert.match(firstReminder[0].text, /时间窗：2000-01-01 · 前后各10年/);
   step(missed, { turnStart: true, canRemind });
   assert.deepEqual(step(missed, { turnStart: true, canRemind }), []);
   // Reminders are only offered at turn start.
@@ -102,7 +103,8 @@ test('changing the window re-injects with an update summary', () => {
   const told = applyEvent(pin('2000-01-01 10年'), header(1_100));
   const changed = fold([run('3000-01-01', { id: 'c2', time: 2_000 }), done({ id: 'c2', time: 2_001 })], told);
   assert.equal(changed.asOf, 'ce:3000-01-01');
-  assert.equal(changed.span, '10y');
+  assert.equal(changed.before, '10y');
+  assert.equal(changed.after, '10y');
   assert.equal(changed.anchorPending, true);
   const messages = step(changed, { turnStart: true });
   assert.equal(messages.length, 1);
@@ -111,11 +113,12 @@ test('changing the window re-injects with an update summary', () => {
   assert.match(messages[0].text, /3000-01-01/);
 });
 
-test('an as-of-only pin keeps the current span', () => {
-  const withSpan = pin('2000-01-01 10年');
-  const asOfOnly = fold([run('2000-06-01', { id: 'c2' }), done({ id: 'c2' })], withSpan);
+test('an as-of-only pin keeps the current range', () => {
+  const withRange = pin('2000-01-01 10年');
+  const asOfOnly = fold([run('2000-06-01', { id: 'c2' }), done({ id: 'c2' })], withRange);
   assert.equal(asOfOnly.asOf, 'ce:2000-06-01');
-  assert.equal(asOfOnly.span, '10y');
+  assert.equal(asOfOnly.before, '10y');
+  assert.equal(asOfOnly.after, '10y');
 });
 
 test('/pin off returns to default mode and the clear notice is injected once', () => {
@@ -130,32 +133,35 @@ test('/pin off returns to default mode and the clear notice is injected once', (
   assert.deepEqual(step(toldDefault, { turnStart: true }), []);
 });
 
-test('BCE windows render era labels and BC lower bounds', () => {
+test('BCE windows render era labels and BC bounds', () => {
   const state = pin('公元前200年 前20年');
   assert.equal(state.asOf, 'bce:200-01-01');
   const [message] = step(state, { turnStart: true });
   assert.match(message.text, /有效时间（as_of）是 公元前200年/);
   assert.match(message.text, /公元前220年/);
-  assert.match(message.text, /时间窗：公元前200年 · 前20年/);
+  assert.match(message.text, /公元前180年/);
+  assert.match(message.text, /时间窗：公元前200年 · 前后各20年/);
 });
 
-test('a bare year is January 1 and a finite span alone restricts the window', () => {
+test('a bare year is January 1; a range alone restricts the window', () => {
   const state = pin('2000');
   assert.equal(state.asOf, 'ce:2000-01-01');
-  assert.equal(state.span, null);
+  assert.equal(state.before, null);
+  assert.equal(state.after, null);
   const [message] = step(state, { turnStart: true });
-  assert.match(message.text, /证据窗口：\[不限（不限制往前多久）, 2000-01-01\]/);
+  assert.match(message.text, /证据窗口：\[不限（不限制往前多久）, 不限（不限制往后多久）\]/);
 
   const recent = pin('7天');
   assert.equal(recent.restricted, true);
   assert.equal(recent.asOf, null);
-  assert.equal(recent.span, '7d');
-  assert.equal(stateSignature(recent, NOW), 'today:ce:2026-11-03|7d');
+  assert.equal(recent.before, '7d');
+  assert.equal(recent.after, '7d');
+  assert.equal(stateSignature(recent, NOW), 'today:ce:2026-11-03|7d|7d');
   const [recentMessage] = step(recent, { turnStart: true });
   assert.match(recentMessage.text, /默认（本地今天 2026-11-03）/);
-  assert.match(recentMessage.text, /\[2026-10-27, 2026-11-03\]/);
+  assert.match(recentMessage.text, /\[2026-10-27, 2026-11-10\]/);
 
-  // `/pin 不限` clears the finite span again (both fields empty -> default).
+  // `/pin 不限` clears the range again (both sides empty -> default).
   const cleared = fold([run('不限', { id: 'c9b' }), done({ id: 'c9b' })], recent);
   assert.equal(cleared.restricted, false);
 });
@@ -178,10 +184,10 @@ test('invalid and failed commands never change the window', () => {
   const started = pin('2000-01-01 10年');
   const failed = fold([run('2026-02-30', { id: 'c4' }), done({ id: 'c4', kind: 'error' })], started);
   assert.equal(failed.asOf, 'ce:2000-01-01');
-  assert.equal(failed.span, '10y');
+  assert.equal(failed.before, '10y');
   const invalid = fold([run('2026-02-30', { id: 'c5' }), done({ id: 'c5' })], started);
   assert.equal(invalid.asOf, 'ce:2000-01-01');
-  assert.equal(invalid.span, '10y');
+  assert.equal(invalid.before, '10y');
 });
 
 test('unrelated commands and events return the same reference', () => {
@@ -201,20 +207,23 @@ test('the wire view is stable for an unchanged state and labels every mode', () 
   assert.equal(defaultView.asOfInput, '');
 
   const pastView = viewOf(pin('2000-01-01 10年'));
-  assert.equal(pastView.chipLabel, '2000-01-01 · 前10年');
+  assert.equal(pastView.chipLabel, '2000-01-01 · 前后各10年');
+  assert.equal(pastView.rangeLabel, '前后各10年');
   assert.equal(pastView.asOfInput, '2000-01-01');
-  assert.equal(pastView.spanInput, '10年');
+  assert.equal(pastView.beforeInput, '10年');
+  assert.equal(pastView.afterInput, '10年');
   assert.equal(pastView.restricted, true);
 
   const recentView = viewOf(fold([run('30天', { id: 'c1' }), done({ id: 'c1' })], initialState()));
   assert.equal(recentView.restricted, true);
   assert.equal(recentView.modeBase, 'recent');
-  assert.equal(recentView.chipLabel, '默认 · 近30天');
+  assert.equal(recentView.chipLabel, '默认 · 前后各30天');
   assert.equal(recentView.asOfInput, '');
-  assert.equal(recentView.spanInput, '30天');
+  assert.equal(recentView.beforeInput, '30天');
+  assert.equal(recentView.afterInput, '30天');
 
   const bceView = viewOf(pin('公元前200年 前20年'));
-  assert.equal(bceView.chipLabel, '公元前200年 · 前20年');
+  assert.equal(bceView.chipLabel, '公元前200年 · 前后各20年');
   assert.equal(bceView.asOfInput, '公元前200年');
 
   const futureView = viewOf(pin('3000'));
@@ -236,5 +245,5 @@ test('en prompt locale produces English blocks and markers', () => {
   const state = pin('2000-01-01 10年');
   const [message] = planStep({ state, nowMs: NOW, promptLocale: 'en', turnStart: true });
   assert.match(message.text, /Evidence window:/);
-  assert.match(message.text, /Time window: 2000-01-01 · last 10 years/);
+  assert.match(message.text, /Time window: 2000-01-01 · ±10 years/);
 });

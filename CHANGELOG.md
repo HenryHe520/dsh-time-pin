@@ -9,6 +9,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.2.0] - 2026-11-06
+
+**Breaking change to the window model**: the single lookback span is split into
+two independent range sides around the as-of, so a window can extend *after* the
+pin as well as before it.
+
+### Changed
+
+- **Window model: `{asOf, before, after}`** replaces `{asOf, span}`. The evidence
+  window is `[as_of − before, as_of + after]`; a side with no range is unbounded
+  on that side. `STATE_VERSION` is 3.
+- **Mirror rule**: when only one range side is supplied the other mirrors it, in
+  the panel and in `/pin`. `/pin 2000-01-01 10年` now means "ten years either
+  side of 2000-01-01" (window 1990-01-01 … 2010-01-01); an asymmetric window is
+  written `/pin 2000-01-01 前10年 后5年`, and a slash form
+  (`前10年/后5年`) is accepted too.
+- **Both sides empty = unbounded range** (the as-of is kept; only the bounds are
+  unrestricted). Without an as-of, both sides empty still returns to default
+  mode. An explicit `不限` side is honoured (e.g. `前10年/后不限`).
+- **`future view` now keys off the window, not just the as-of**: a window whose
+  upper bound reaches past today (a future as-of *or* an after-side crossing
+  today) gets the `[FUTURE VIEW]` block.
+- **Anchor line and chip label** render the range: `前后各10年` / `±10 years`
+  when mirrored, `前10年/后5年` / `last 10 years / next 5 years` when asymmetric,
+  `不限` / `unlimited` when both sides are unbounded. The echo validator now
+  compares both sides.
+- **`time_pin_status`**: `spanLabel` was replaced by `rangeLabel`; the window
+  bounds are now `[lower, upper]` where either side can be unbounded.
+- **Panel**: two range inputs (before / after the as-of) with shared presets;
+  `docs/screenshots/shot-02-window-panel.png` still shows the 0.1.x
+  single-range panel and should be retaken.
+- Existing recorded `/pin <as-of> <span>` commands replay under the new mirror
+  rule (a resumed 0.1.x conversation shows the symmetric window), which is
+  inherent to deriving state from the session log.
+- Tests: 141 total — 129 pass, 12 skipped in a plain checkout.
+
+### Fixed (carried over, still shipped)
+
+- See 0.1.2 below: the portaled panel, localized evidence notes and the
+  today-date echo tolerance are included in 0.2.0.
+
 ## [0.1.2] - 2026-11-06
 
 Fixes the panel being clipped by the DSH 0.2.2 header shell, plus two smaller

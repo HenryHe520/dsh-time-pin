@@ -5,21 +5,21 @@ English | [中文](README.zh.md)
 `npm` [dsh-time-pin](https://www.npmjs.com/package/dsh-time-pin) ·
 `GitHub` [HenryHe520/dsh-time-pin](https://github.com/HenryHe520/dsh-time-pin)
 
-**Pin the agent's "now" to a point in time and give the conversation a lookback
-evidence window — past, future, or BC — instead of letting it answer from
-today's knowledge.**
+**Pin the agent's "now" to a point in time and give the conversation a dated
+evidence window around it — a range before and after the pin, past, future, or
+BC — instead of letting it answer from today's knowledge.**
 
 Time Anchor adds a session-scoped time frame to every DSH conversation: an
-**as-of** time point and a **lookback span**, together forming the evidence
-window `[as_of − span, as_of]`. In **restricted mode** the agent is told, once per
-window change, which window it may reason from and which evidence rules apply;
-`web_search` results are filtered to *dated* sources inside that window, and the
-first reply must echo the active window. A second capability narrates
-long-running silent **background** jobs with deterministic `[TIME FACT]` facts.
-In the default time-window mode the plugin injects nothing and filters nothing.
-The silent-job narration is a separate feature, enabled by default and
-independent of the time window; it never filters anything and can be turned off
-on the plugin's Configure page.
+**as-of** time point plus a **retrieval range** split into a side before and a
+side after it, together forming the evidence window
+`[as_of − before, as_of + after]`. In **restricted mode** the agent is told, once
+per window change, which window it may reason from and which evidence rules
+apply; `web_search` results are filtered to *dated* sources inside that window,
+and the first reply must echo the active window. A second capability narrates
+long-running silent **background** jobs with deterministic `[TIME FACT]` facts
+(enabled by default and independent of the time window; turn it off in
+Configure). In the default time-window mode the plugin injects nothing and
+filters nothing.
 
 > **Honest disclaimer:** this is **evidence isolation, not model amnesia**. The
 > model may still know about events after `as_of`; Time Anchor constrains what may
@@ -53,9 +53,9 @@ on the plugin's Configure page.
 
 | Capability | What it gives you |
 |---|---|
-| **Pinned time window** | A chat-header control (and `/pin` command) that pins `as_of` and a lookback `span`, per conversation. Default, past, future, and BC years are all valid. |
+| **Pinned time window** | A chat-header control (and `/pin` command) that pins `as_of` and a retrieval range on both sides, per conversation. Default, past, future, and BC years are all valid. |
 | **Evidence discipline** | In restricted mode the agent is told which window is authoritative, must cite dates, must treat undated and out-of-window material as unusable, and must say so when the window has no usable evidence. |
-| **Filtered web evidence** | `web_search` sources are dropped when they are undated or fall outside `[as_of − span, as_of]`; the model receives a note explaining what was excluded. |
+| **Filtered web evidence** | `web_search` sources are dropped when they are undated or fall outside `[as_of − before, as_of + after]`; the model receives a note explaining what was excluded. |
 | **Anchor echo** | After entering or changing a restricted window, the model's first reply must open with a one-line confirmation of the active window. A missing echo gets one nudge; anchoring never blocks the turn. |
 | **Silent-job narration** | Background jobs that produce no output for 90 seconds (then every 3 minutes) produce deterministic `[TIME FACT]` facts the model can report — no guessing about "still running?". |
 
@@ -65,9 +65,9 @@ on the plugin's Configure page.
 
 *Default mode injects nothing and filters nothing — the header control always shows the current state.*
 
-![Set a time point and a lookback span](docs/screenshots/shot-02-window-panel.png)
+![Set a time point and a range on both sides](docs/screenshots/shot-02-window-panel.png)
 
-*Pin a time point and a lookback span; the panel submits the same `/pin` command a user could type.*
+*Pin a time point and a range before/after it; the panel submits the same `/pin` command a user could type.*
 
 ![One command, one validator](docs/screenshots/shot-03-command-receipts.png)
 
@@ -131,15 +131,17 @@ dsh-time-pin** (see [Configuration](#configuration)).
    /pin 2000-01-01 10年
    ```
 
-   The chip becomes `🕰 2000-01-01 · last 10 years` (Chinese UI:
-   `🕰 2000-01-01 · 前10年`). With the default `promptLocale: zh` the command
-   reply reads "时间窗已更新：2000-01-01 · 前10年" and explains restricted-mode
-   rules; set `promptLocale: en` for English replies.
+   One supplied side mirrors to the other, so this pins ten years either side
+   of 2000-01-01: the evidence window is 1990-01-01 … 2010-01-01. The chip becomes
+   `🕰 2000-01-01 · ±10 years` (Chinese UI: `🕰 2000-01-01 · 前后各10年`). With the
+   default `promptLocale: zh` the command reply reads "时间窗已更新：2000-01-01 ·
+   前后各10年" and explains restricted-mode rules; set `promptLocale: en` for
+   English replies.
 3. Ask your question ("2000 年初做互联网，哪里是风口？"). The next model request
    carries the window block; with `promptLocale: zh` the reply must start with
-   `时间窗：2000-01-01 · 前10年` (`Time window: 2000-01-01 · last 10 years` with
+   `时间窗：2000-01-01 · 前后各10年` (`Time window: 2000-01-01 · ±10 years` with
    `en`), and `web_search` evidence is filtered to dated sources between
-   1990-01-01 and 2000-01-01.
+   1990-01-01 and 2010-01-01.
 4. Clear it when you are done:
 
    ```text
@@ -158,11 +160,12 @@ Other first things to try:
 | Command | Result |
 |---|---|
 | `/pin` | Show the current mode and window (alias: `/pin status`). |
-| `/pin 2000` | Pin 1 January 2000; the current span is kept. |
-| `/pin 7天` | Keep the default (clock-following) time point and look back 7 days → `Default · last 7 days` (`默认 · 近7天`). |
+| `/pin 2000` | Pin 1 January 2000; the current range is kept. |
+| `/pin 2000-01-01 前10年 后5年` | Asymmetric range: ten years before and five years after the pin. |
+| `/pin 7天` | Keep the default (clock-following) time point with ±7 days → `Default · ±7 days` (`默认 · 前后各7天`). |
 | `/pin 3000-01-01` | Future view: the model is told it does not know the period and must label speculation. |
 | `/pin 公元前200年 前20年` | BC window; no year 0 exists, so 1 BC is followed by AD 1. |
-| `/pin 不限` | Remove the lookback filter entirely (returns to default mode, like `/pin off`). |
+| `/pin 不限` | Remove the range entirely (returns to default mode, like `/pin off`). |
 
 ## The `/pin` command
 
@@ -174,25 +177,32 @@ validator and one source of truth.
 ### Grammar
 
 ```text
-/pin                        # show the current window/mode (status query)
-/pin <as-of>                # pin the time point, keep the current span
-/pin <as-of> <span>         # pin both
-/pin <span>                 # keep the default time point, set a finite lookback
-/pin off                    # clear the window, back to default mode
+/pin                             # show the current window/mode (status query)
+/pin <as-of>                     # pin the time point, keep the current range
+/pin <as-of> <range>             # one range side; the other mirrors it
+/pin <as-of> <前…> <后…>         # asymmetric range, e.g. /pin 2000-01-01 前10年 后5年
+/pin <range>                     # keep the default time point, set the range
+/pin off                         # clear the window, back to default mode
 ```
 
+A range token may carry a side prefix: `前` / `近` / `last` / `past` (before the
+as-of) or `后` / `next` / `after` (after the as-of). With one side supplied the
+other mirrors it; with two sides they are positional (before, after) unless the
+prefixes say otherwise; a slash form works too (`前10年/后5年`). `不限` on both
+sides means an unbounded range.
+
 Aliases: `status` / `状态` / `?` / `help` for a status query; `off` / `清空` /
-`默认` / `clear` / `reset` to clear. A span-only line keeps the default,
-clock-following time point, which is the "only the last N days" case.
-`/pin 不限` removes the lookback filter and, since the line pins no date,
-returns to default mode (the same visible result as `/pin off`); to keep a
-pinned as-of with no lookback bound, use `/pin <as-of> 不限`.
+`默认` / `clear` / `reset` to clear. A range-only line keeps the default,
+clock-following time point, which is the "recent N days either side of today"
+case. `/pin 不限` removes the range and, since the line pins no date, returns to
+default mode (the same visible result as `/pin off`); to keep a pinned as-of
+with an unbounded range, use `/pin <as-of> 不限`.
 
 Command result text and model-facing blocks follow the `promptLocale` config
 (`zh` by default, `en` available). The window label shown in the chip, the panel
 copy, buttons and errors follow the browser UI locale through the Client's
 `time-pin` locale namespace (English UI: `Default · Unlimited`,
-`2000-01-01 · last 10 years`; Chinese UI: `默认 · 不限`, `2000-01-01 · 前10年`).
+`2000-01-01 · ±10 years`; Chinese UI: `默认 · 不限`, `2000-01-01 · 前后各10年`).
 The two are independent — a Chinese UI can drive an English prompt and vice
 versa.
 
@@ -214,35 +224,37 @@ Rules: years 1–9999 in either era (future years are allowed); there is no year
 message (`2026-02-30` → "日期不存在：2026 年 2 月只有 28 天"); full-width digits
 and punctuation are normalized (`３０００` works).
 
-### Span formats
+### Range formats
 
 | Form | Examples | Interpreted as |
 |---|---|---|
-| Unlimited (default) | `不限`, `unlimited`, `all`, `none`, `-`, `—` | no lower bound |
-| Days | `7天`, `30 天`, `7d`, `7 days` | `as_of − N days` |
-| Months | `6个月`, `6mo`, `6 months` | `as_of − N calendar months` (day clamped, e.g. 31 Mar − 1 month = 29 Feb) |
-| Years | `10年`, `100年`, `10y`, `10 years` | `as_of − N calendar years` |
+| Unlimited (default) | `不限`, `unlimited`, `all`, `none`, `-`, `—` | no boundary on that side |
+| Days | `7天`, `30 天`, `7d`, `7 days` | `as_of ∓ N days` |
+| Months | `6个月`, `6mo`, `6 months` | `as_of ∓ N calendar months` (day clamped, e.g. 31 Mar − 1 month = 29 Feb) |
+| Years | `10年`, `100年`, `10y`, `10 years` | `as_of ∓ N calendar years` |
 
-Limits: N must be an integer ≥ 1; at most 3,650,000 days, 120,000 months, or
-10,000 years. `0天`, `-1年`, `10光年` and other unknown units are rejected with an
-inline error.
+Both sides accept the same formats; the panel has one field for each side. If
+only one side is given the other mirrors it; if neither is given the range is
+unbounded on both sides. Limits: N must be an integer ≥ 1; at most 3,650,000
+days, 120,000 months, or 10,000 years. `0天`, `-1年`, `10光年` and other unknown
+units are rejected with an inline error.
 
 ## Behavior
 
-### Default mode (no pin, no span)
+### Default mode (no pin, no range)
 
 - The chip shows `🕐 Default · Unlimited` (Chinese UI: `🕐 默认 · 不限`).
 - **Nothing is injected into the model context.** No block, no timestamp, no
   extra tokens.
 - `web_search` results are not filtered.
 
-### Restricted mode (a pin or a finite span)
+### Restricted mode (a pin or a bounded range)
 
 Entering or changing a restricted window injects one durable, source-attributed
 block on the next model request:
 
 - effective `as_of` and the inclusive evidence window
-  `[as_of − span, as_of]`;
+  `[as_of − before, as_of + after]` (a side with no range is unbounded);
 - four evidence rules: (1) only dated facts inside the window are usable, undated
   sources are untrustworthy and excluded; (2) outside-window information is
   unknown and must not be used to complete a conclusion; (3) key conclusions
@@ -250,8 +262,9 @@ block on the next model request:
   in; (4) the reply must start with the window confirmation line;
 - when the model was previously told a window state (including default mode), a
   short "where you are now" summary is prepended;
-- a future window appends a `[FUTURE VIEW]` block (the model must label
-  speculation as speculation and may not present invented events as facts).
+- a window that reaches past today appends a `[FUTURE VIEW]` block (the model
+  must label speculation as speculation and may not present invented events as
+  facts).
 
 The block is injected **once per window change**, not once per step: the session
 projection records the window signature it last told the model about, and
@@ -262,23 +275,25 @@ zero messages.
 must begin with the confirmation line, for example:
 
 ```text
-时间窗：2000-01-01 · 前10年
+时间窗：2000-01-01 · 前后各10年
 ```
 
-(English prompt: `Time window: 2000-01-01 · last 10 years`.) The echo is checked
-as a whole, not by prefix: the marker, the exact date and the exact span all
-have to match (date-format variants such as `2000/01/01` or `2000年1月1日` are
-tolerated). If the echo is missing or wrong, the plugin appends one short
-correction at the start of the next turn and asks for the echo again — at most
-twice per window. After that the UI keeps an "unconfirmed" marker and the
-conversation continues; anchoring never blocks a turn.
+(English prompt: `Time window: 2000-01-01 · ±10 years`.) The echo is checked as a
+whole, not by prefix: the marker, the exact date and the exact range on both
+sides all have to match (date-format variants such as `2000/01/01` or
+`2000年1月1日` are tolerated, and asymmetric ranges echo as `前10年/后5年` /
+`last 10 years / next 5 years`). If the echo is missing or wrong, the plugin
+appends one short correction at the start of the next turn and asks for the echo
+again — at most twice per window. After that the UI keeps an "unconfirmed"
+marker and the conversation continues; anchoring never blocks a turn.
 
 **Evidence filtering.** In restricted mode, `web_search` results are rewritten
 before the model sees them:
 
 - a source with a parseable date (`publishedAt`, e.g. ISO dates, `YYYY/MM/DD`,
   `YYYY-MM`, `YYYY`, `today`, `yesterday`, `N days ago`) is kept only when its
-  date is inside `[as_of − span, as_of]`, endpoints included;
+  date is inside `[as_of − before, as_of + after]`, endpoints included (an
+  unbounded side admits everything on that side);
 - a source with no parseable date is excluded (the product rule is: a credible
   source states its date);
 - the provider's own generated summary (`content`) is **dropped** in restricted
@@ -295,11 +310,11 @@ applies, then no further time-pin text is sent.
 
 ### Future view
 
-An `as_of` after today is a valid speculative mode, not an error. The model is
-told it does not know the period, that every concrete event must be marked as an
-assumption, and that the window contains no verifiable sources. The panel shows
-a one-time warning: "The model does not know the future. Answers are in-universe
-speculation from the pinned viewpoint, not factual predictions."
+A window that reaches past today (a future `as_of`, or an after-side that crosses
+today) is a valid speculative mode, not an error. The model is told it does not
+know that period, that every concrete event must be marked as an assumption. The
+panel shows a one-time warning: "The model does not know the future. Answers are
+in-universe speculation from the pinned viewpoint, not factual predictions."
 
 ## Configuration
 
@@ -361,7 +376,7 @@ was not observed.
 
 `time_pin_status` (no parameters) returns the current frame so the agent can
 inspect what it is bound to: `restricted`, `mode` (`default` / `past` / `future`
-/ `recent`), `asOfLabel`, `spanLabel`, `windowLowerLabel`, `windowUpperLabel`,
+/ `recent`), `asOfLabel`, `rangeLabel`, `windowLowerLabel`, `windowUpperLabel`,
 `timezone`, `nowIso`, `future`, and `anchorPending`. The tool is read-only; the
 user owns the window and the model can only suggest widening it.
 
@@ -496,7 +511,7 @@ existing conversation's window intact.
 ## Development
 
 ```sh
-npm test                    # 138 tests: 126 pass, 12 skipped in a plain checkout
+npm test                    # 141 tests: 129 pass, 12 skipped in a plain checkout
 npm run test:client         # 34 client lazy-bundle smoke tests (DOM stub)
 npm run preflight           # release checks: files, version/CHANGELOG, npm pack list
 node --check lib/index.js   # (and the other modules)

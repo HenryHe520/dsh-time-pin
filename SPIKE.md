@@ -107,7 +107,7 @@
 
 | Suite | Result |
 |---|---|
-| `npm test` (window/fold/evidence/text/silence/client bundles + Host wiring + schema parsing) | **138 tests: 126 pass, 12 skipped in a plain checkout, 0 fail** |
+| `npm test` (window/fold/evidence/text/silence/client bundles + Host wiring + schema parsing) | **141 tests: 129 pass, 12 skipped in a plain checkout, 0 fail** |
 | `tests/host-wiring.test.mjs` in a sandbox linked to the real installed `@deepseek-ai` packages | **5/5 pass** — the real `Config` schema, real `defineTool` (output-schema validated), real `createUserMessage`, real projection registration |
 | `tests/host-schema.test.mjs` in the same sandbox | **7/7 pass** — real zod parses every projection state / Client view the fold can produce, rejects malformed views, and resolves the `Config` defaults |
 | `tests/client.dom.test.mjs` | **34/34 pass** — chip, panel, command lines, removed-bar trace check, and the settings page (registration, namespace spellings, summary, four rows, writes, seconds→ms clamping, read-only, loading) |

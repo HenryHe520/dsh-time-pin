@@ -39,8 +39,12 @@ const webValue = (sources, content) => ({
   truncated: false,
 });
 
-/** The window [1990-01-01, 2000-01-01]. */
-const PINNED_1990_2000 = { asOf: CE(2000, 1, 1), span: { unit: 'year', amount: 10 } };
+/** The window [1990-01-01, 2010-01-01]: ten years either side of the pin. */
+const PINNED_1990_2000 = {
+  asOf: CE(2000, 1, 1),
+  before: { unit: 'year', amount: 10 },
+  after: { unit: 'year', amount: 10 },
+};
 
 // ---------------------------------------------------------------------------
 // parsePublishedAt
@@ -176,7 +180,7 @@ test('filterWebSearchValue: drops out-of-window and undated sources with an exac
   const value = webValue(
     [
       source('1989-12-31', 'too-old'),
-      source('2000-01-02', 'too-new'),
+      source('2011-01-01', 'too-new'),
       source(undefined, 'undated'),
       source('not a date', 'garbage'),
       source('1995-06-01', 'kept'),
@@ -193,7 +197,7 @@ test('filterWebSearchValue: drops out-of-window and undated sources with an exac
   assert.equal(result.value.truncated, false);
   assert.equal(
     result.value.content,
-    '[TIME PIN] 受限模式：检索服务商的自动摘要不参与取证；已排除 2 条无日期来源、2 条窗口外来源（时间窗 1990-01-01 至 2000-01-01）。',
+    '[TIME PIN] 受限模式：检索服务商的自动摘要不参与取证；已排除 2 条无日期来源、2 条窗口外来源（时间窗 1990-01-01 至 2010-01-01）。',
   );
   assert.doesNotMatch(result.value.content, /Provider answer/);
 });
@@ -207,7 +211,7 @@ test('filterWebSearchValue: drops the provider summary even when every source su
   assert.equal(result.value.sources.length, 1);
   assert.doesNotMatch(result.value.content, /2007|Provider answer/);
   assert.match(result.value.content, /自动摘要不参与取证/);
-  assert.match(result.value.content, /1990-01-01 至 2000-01-01/);
+  assert.match(result.value.content, /1990-01-01 至 2010-01-01/);
 });
 
 test('filterWebSearchValue: creates content when the provider answer is absent', () => {
@@ -215,7 +219,7 @@ test('filterWebSearchValue: creates content when the provider answer is absent',
   const result = filterWebSearchValue(value, PINNED_1990_2000, NOW);
   assert.equal(
     result.value.content,
-    '[TIME PIN] 已排除 0 条无日期来源、1 条窗口外来源（时间窗 1990-01-01 至 2000-01-01）。',
+    '[TIME PIN] 已排除 0 条无日期来源、1 条窗口外来源（时间窗 1990-01-01 至 2010-01-01）。',
   );
 });
 
@@ -230,7 +234,7 @@ test('filterWebSearchValue: zero usable evidence gets the explicit note', () => 
   assert.equal(typeof result.value.content, 'string');
   assert.match(result.value.content, /按当前时间窗没有带日期的可用证据/);
   assert.match(result.value.content, /已排除 1 条无日期来源、1 条窗口外来源/);
-  assert.match(result.value.content, /1990-01-01 至 2000-01-01/);
+  assert.match(result.value.content, /1990-01-01 至 2010-01-01/);
   assert.doesNotMatch(result.value.content, /Provider answer/);
 });
 
@@ -252,7 +256,7 @@ test('filterWebSearchValue: repeated filtering converges to the same bytes', () 
 test('filterWebSearchValue: unrestricted windows leave the value untouched', () => {
   const value = webValue([source(undefined, 'undated'), source('2020-01-01', 'outside')]);
   assert.equal(filterWebSearchValue(value, null, NOW).value, value);
-  assert.equal(filterWebSearchValue(value, { asOf: null, span: null }, NOW).value, value);
+  assert.equal(filterWebSearchValue(value, { asOf: null, before: null, after: null }, NOW).value, value);
   assert.equal(filterWebSearchValue(value, undefined, NOW).value, value);
 });
 
@@ -263,7 +267,7 @@ test('filterWebSearchValue: English notes follow promptLocale', () => {
   );
   const result = filterWebSearchValue(value, PINNED_1990_2000, NOW, 'en');
   assert.match(result.value.content, /Restricted mode/);
-  assert.match(result.value.content, /1990-01-01 to 2000-01-01/);
+  assert.match(result.value.content, /1990-01-01 to 2010-01-01/);
   assert.match(result.value.content, /excluded 1 undated source\(s\) and 1 out-of-window source\(s\)/);
   assert.doesNotMatch(result.value.content, /Provider answer|检索服务商/);
 });
@@ -272,7 +276,7 @@ test('filterWebSearchValue: English zero-evidence note', () => {
   const value = webValue([source(undefined, 'undated')]);
   const result = filterWebSearchValue(value, PINNED_1990_2000, NOW, 'en');
   assert.match(result.value.content, /No usable dated evidence/);
-  assert.match(result.value.content, /1990-01-01 to 2000-01-01/);
+  assert.match(result.value.content, /1990-01-01 to 2010-01-01/);
 });
 
 test('createEvidencePostExecute: the locale thunk drives the note language', async () => {
@@ -301,7 +305,11 @@ test('filterWebSearchValue: malformed values are returned unchanged', () => {
 });
 
 test('filterWebSearchValue: relative dates resolve against the injected clock', () => {
-  const relativeWindow = { asOf: today(NOW), span: { unit: 'day', amount: 7 } };
+  const relativeWindow = {
+    asOf: today(NOW),
+    before: { unit: 'day', amount: 7 },
+    after: { unit: 'day', amount: 7 },
+  };
   const value = webValue([
     source('3 days ago', 'three-days'),
     source('7 days ago', 'seven-days'),
@@ -317,20 +325,24 @@ test('filterWebSearchValue: relative dates resolve against the injected clock', 
   assert.match(result.value.content, /已排除 0 条无日期来源、1 条窗口外来源/);
 });
 
-test('filterWebSearchValue: a past pin without a span drops only later evidence', () => {
+test('filterWebSearchValue: a before-only window leaves the future unbounded', () => {
   const value = webValue([
-    source('1900-01-01', 'old-but-allowed'),
-    source('1999-12-31', 'in'),
-    source('2001-01-01', 'future'),
+    source('1900-01-01', 'old'),
+    source('1999-12-31', 'inside'),
+    source('2001-01-01', 'after-as-of'),
   ]);
-  const result = filterWebSearchValue(value, { asOf: CE(2000, 1, 1), span: null }, NOW);
+  const result = filterWebSearchValue(
+    value,
+    { asOf: CE(2000, 1, 1), before: { unit: 'year', amount: 10 }, after: null },
+    NOW,
+  );
   assert.deepEqual(
     result.value.sources.map((entry) => entry.url),
-    ['https://example.test/old-but-allowed', 'https://example.test/in'],
+    ['https://example.test/inside', 'https://example.test/after-as-of'],
   );
   assert.equal(
     result.value.content,
-    '[TIME PIN] 已排除 0 条无日期来源、1 条窗口外来源（时间窗 不限 至 2000-01-01）。',
+    '[TIME PIN] 已排除 0 条无日期来源、1 条窗口外来源（时间窗 1990-01-01 至 不限）。',
   );
 });
 
@@ -338,22 +350,30 @@ test('filterWebSearchValue: BCE windows label their range correctly', () => {
   const value = webValue([source('1995-01-01', 'ce-source')]);
   const result = filterWebSearchValue(
     value,
-    { asOf: BCE(200, 1, 1), span: { unit: 'year', amount: 20 } },
+    {
+      asOf: BCE(200, 1, 1),
+      before: { unit: 'year', amount: 20 },
+      after: { unit: 'year', amount: 20 },
+    },
     NOW,
   );
   assert.equal(result.kept, 0);
-  assert.match(result.value.content, /公元前220年 至 公元前200年/);
+  assert.match(result.value.content, /公元前220年 至 公元前180年/);
 });
 
-test('filterWebSearchValue: future as-of still enforces the upper bound', () => {
+test('filterWebSearchValue: future as-of still enforces both bounds', () => {
   const value = webValue([
-    source('2026-01-01', 'before-the-lookback'),
+    source('2026-01-01', 'before-the-lower-bound'),
     source('2995-01-01', 'inside-future-window'),
-    source('3001-01-01', 'beyond-as-of'),
+    source('3011-01-01', 'beyond-as-of'),
   ]);
   const result = filterWebSearchValue(
     value,
-    { asOf: CE(3000, 1, 1), span: { unit: 'year', amount: 10 } },
+    {
+      asOf: CE(3000, 1, 1),
+      before: { unit: 'year', amount: 10 },
+      after: { unit: 'year', amount: 10 },
+    },
     NOW,
   );
   assert.equal(result.kept, 1);

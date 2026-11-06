@@ -3,15 +3,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  addSpan,
   asOfFromKey,
   asOfKey,
   daysInMonth,
   dayInWindow,
   formatAsOfDate,
+  formatRangeEn,
+  formatRangeZh,
   formatSpanZh,
   formatWindowLabelZh,
   fromDayNumber,
   isFuture,
+  isPast,
   isRestricted,
   parseAsOf,
   parsePinArgs,
@@ -22,6 +26,7 @@ import {
   subtractSpan,
   toDayNumber,
   today,
+  windowBounds,
   windowFromInput,
   windowMode,
   windowSignature,
@@ -100,7 +105,7 @@ test('parseSpan covers day/month/year and unlimited', () => {
   }
 });
 
-test('subtractSpan uses calendar months and years', () => {
+test('subtractSpan and addSpan use calendar months and years', () => {
   assert.deepEqual(subtractSpan(CE(2000), { unit: 'year', amount: 10 }), CE(1990));
   assert.deepEqual(subtractSpan(CE(2000, 3, 31), { unit: 'month', amount: 1 }), CE(2000, 2, 29));
   assert.deepEqual(subtractSpan(CE(2000), { unit: 'day', amount: 1 }), CE(1999, 12, 31));
@@ -108,14 +113,43 @@ test('subtractSpan uses calendar months and years', () => {
   assert.deepEqual(subtractSpan(BCE(1), { unit: 'year', amount: 1 }), BCE(2));
   assert.deepEqual(subtractSpan(CE(1), { unit: 'year', amount: 1 }), BCE(1));
   assert.equal(subtractSpan(CE(2000), null), null);
+  assert.deepEqual(addSpan(CE(2000), { unit: 'year', amount: 10 }), CE(2010));
+  assert.deepEqual(addSpan(CE(2000, 1, 31), { unit: 'month', amount: 1 }), CE(2000, 2, 29));
+  assert.deepEqual(addSpan(CE(2000), { unit: 'day', amount: 1 }), CE(2000, 1, 2));
+  assert.deepEqual(addSpan(BCE(200), { unit: 'year', amount: 20 }), BCE(180));
+  assert.deepEqual(addSpan(BCE(1), { unit: 'year', amount: 1 }), CE(1));
+  assert.equal(addSpan(CE(2000), null), null);
 });
 
-test('window bounds are inclusive at both ends', () => {
-  const window = { asOf: CE(2000), span: { unit: 'year', amount: 10 } };
+test('window bounds are inclusive on both sides', () => {
+  const window = {
+    asOf: CE(2000),
+    before: { unit: 'year', amount: 10 },
+    after: { unit: 'year', amount: 10 },
+  };
+  assert.deepEqual(windowBounds(window, NOW), {
+    lower: toDayNumber(CE(1990)),
+    upper: toDayNumber(CE(2010)),
+  });
   assert.equal(dayInWindow(toDayNumber(CE(1990)), window, NOW), true);
-  assert.equal(dayInWindow(toDayNumber(CE(2000)), window, NOW), true);
+  assert.equal(dayInWindow(toDayNumber(CE(2010)), window, NOW), true);
   assert.equal(dayInWindow(toDayNumber(CE(1989, 12, 31)), window, NOW), false);
-  assert.equal(dayInWindow(toDayNumber(CE(2000, 1, 2)), window, NOW), false);
+  assert.equal(dayInWindow(toDayNumber(CE(2010, 1, 2)), window, NOW), false);
+});
+
+test('an unbounded side admits every date on that side', () => {
+  const beforeOnly = { asOf: CE(2000), before: { unit: 'day', amount: 7 }, after: null };
+  assert.equal(dayInWindow(toDayNumber(CE(2020)), beforeOnly, NOW), true);
+  assert.equal(dayInWindow(toDayNumber(CE(1999, 12, 25)), beforeOnly, NOW), true);
+  assert.equal(dayInWindow(toDayNumber(CE(1999, 12, 24)), beforeOnly, NOW), false);
+  const afterOnly = { asOf: CE(2000), before: null, after: { unit: 'day', amount: 7 } };
+  assert.equal(dayInWindow(toDayNumber(CE(1990)), afterOnly, NOW), true);
+  assert.equal(dayInWindow(toDayNumber(CE(2000, 1, 8)), afterOnly, NOW), true);
+  assert.equal(dayInWindow(toDayNumber(CE(2000, 1, 9)), afterOnly, NOW), false);
+  const unbounded = { asOf: CE(2000), before: null, after: null };
+  assert.equal(dayInWindow(toDayNumber(BCE(9999)), unbounded, NOW), true);
+  assert.equal(dayInWindow(toDayNumber(CE(9999)), unbounded, NOW), true);
+  assert.equal(isRestricted(unbounded), true);
 });
 
 test('default window follows the clock and stays unrestricted', () => {
@@ -127,31 +161,68 @@ test('default window follows the clock and stays unrestricted', () => {
 });
 
 test('signature is stable for one window and changes only with the window', () => {
-  const window = { asOf: CE(2000), span: { unit: 'year', amount: 10 } };
+  const window = {
+    asOf: CE(2000),
+    before: { unit: 'year', amount: 10 },
+    after: { unit: 'year', amount: 10 },
+  };
   assert.equal(windowSignature(window, NOW), windowSignature(structuredClone(window), NOW));
-  assert.equal(windowSignature(window, NOW), 'ce:2000-01-01|10y');
-  const todayWindow = { asOf: null, span: { unit: 'day', amount: 7 } };
-  assert.equal(windowSignature(todayWindow, NOW), 'today:ce:2026-11-03|7d');
+  assert.equal(windowSignature(window, NOW), 'ce:2000-01-01|10y|10y');
+  const asymmetric = { ...window, after: { unit: 'year', amount: 5 } };
+  assert.equal(windowSignature(asymmetric, NOW), 'ce:2000-01-01|10y|5y');
+  const todayWindow = { asOf: null, before: { unit: 'day', amount: 7 }, after: { unit: 'day', amount: 7 } };
+  assert.equal(windowSignature(todayWindow, NOW), 'today:ce:2026-11-03|7d|7d');
   assert.equal(isRestricted(todayWindow), true);
-  assert.equal(formatWindowLabelZh(todayWindow, NOW), '默认 · 近7天');
+  assert.equal(formatWindowLabelZh(todayWindow, NOW), '默认 · 前后各7天');
 });
 
-test('future, past and label modes', () => {
-  const future = { asOf: CE(3000), span: null };
+test('future, past and label modes follow the window bounds', () => {
+  const future = { asOf: CE(3000), before: null, after: null };
   assert.equal(isFuture(future, NOW), true);
   assert.equal(windowMode(future, NOW), 'future');
   assert.equal(formatWindowLabelZh(future, NOW), '3000-01-01 · 不限');
-  const past = { asOf: CE(2000), span: { unit: 'year', amount: 10 } };
+  const past = {
+    asOf: CE(2000),
+    before: { unit: 'year', amount: 10 },
+    after: { unit: 'year', amount: 10 },
+  };
+  assert.equal(isPast(past, NOW), true);
   assert.equal(windowMode(past, NOW), 'past');
-  assert.equal(formatWindowLabelZh(past, NOW), '2000-01-01 · 前10年');
+  assert.equal(formatWindowLabelZh(past, NOW), '2000-01-01 · 前后各10年');
+  // A past as-of whose after side crosses today is a future-view window.
+  const crossing = { asOf: CE(2026), before: { unit: 'year', amount: 1 }, after: null };
+  assert.equal(isFuture(crossing, NOW), true);
+  assert.equal(windowMode(crossing, NOW), 'future');
+});
+
+test('asymmetric range labels', () => {
+  const window = {
+    asOf: CE(2000),
+    before: { unit: 'year', amount: 10 },
+    after: { unit: 'month', amount: 6 },
+  };
+  assert.equal(formatRangeZh(window), '前10年/后6个月');
+  assert.equal(formatRangeEn(window), 'last 10 years / next 6 months');
+  assert.equal(formatRangeZh({ ...window, after: null }), '前10年/后不限');
+  assert.equal(formatRangeEn({ ...window, after: null }), 'last 10 years / unbounded');
+  assert.equal(formatRangeZh({ ...window, before: null }), '前不限/后6个月');
+  assert.equal(formatRangeEn({ ...window, before: null }), 'unbounded / next 6 months');
+  assert.equal(formatRangeZh({ ...window, before: null, after: null }), '不限');
+  assert.equal(formatRangeEn({ ...window, before: null, after: null }), 'unlimited');
+  assert.equal(formatRangeZh({ ...window, after: { unit: 'year', amount: 10 } }), '前后各10年');
+  assert.equal(formatRangeEn({ ...window, after: { unit: 'year', amount: 10 } }), '±10 years');
 });
 
 test('BCE labels and window math', () => {
   assert.equal(formatAsOfDate(BCE(200)), '公元前200年');
   assert.equal(formatAsOfDate(BCE(200, 3, 5)), '公元前200年3月5日');
   assert.equal(formatSpanZh({ unit: 'year', amount: 20 }), '前20年');
-  const window = { asOf: BCE(200), span: { unit: 'year', amount: 20 } };
-  assert.equal(formatWindowLabelZh(window, NOW), '公元前200年 · 前20年');
+  const window = {
+    asOf: BCE(200),
+    before: { unit: 'year', amount: 20 },
+    after: { unit: 'year', amount: 20 },
+  };
+  assert.equal(formatWindowLabelZh(window, NOW), '公元前200年 · 前后各20年');
   assert.equal(dayInWindow(toDayNumber(BCE(220)), window, NOW), true);
   assert.equal(dayInWindow(toDayNumber(CE(1)), window, NOW), false);
 });
@@ -167,52 +238,116 @@ test('storage keys round trip', () => {
   assert.equal(spanFromKey('nope'), null);
 });
 
-test('windowFromInput names the failing field', () => {
-  assert.deepEqual(windowFromInput('2000-01-01', '10年'), {
+test('windowFromInput mirrors a single side and names the failing field', () => {
+  const TEN_YEARS = { unit: 'year', amount: 10 };
+  const FIVE_YEARS = { unit: 'year', amount: 5 };
+  assert.deepEqual(windowFromInput('2000-01-01', '10年', ''), {
     ok: true,
-    window: { asOf: CE(2000), span: { unit: 'year', amount: 10 } },
+    window: { asOf: CE(2000), before: TEN_YEARS, after: TEN_YEARS },
   });
-  assert.equal(windowFromInput('2026-02-30', '10年').field, 'asOf');
-  assert.equal(windowFromInput('2000-01-01', '0天').field, 'span');
+  assert.deepEqual(windowFromInput('2000-01-01', '', '5年'), {
+    ok: true,
+    window: { asOf: CE(2000), before: FIVE_YEARS, after: FIVE_YEARS },
+  });
+  assert.deepEqual(windowFromInput('2000-01-01', '前10年', '后5年'), {
+    ok: true,
+    window: { asOf: CE(2000), before: TEN_YEARS, after: FIVE_YEARS },
+  });
+  assert.deepEqual(windowFromInput('2000-01-01', '', ''), {
+    ok: true,
+    window: { asOf: CE(2000), before: null, after: null },
+  });
+  assert.deepEqual(windowFromInput('', '7天', ''), {
+    ok: true,
+    window: { asOf: null, before: { unit: 'day', amount: 7 }, after: { unit: 'day', amount: 7 } },
+  });
+  assert.deepEqual(windowFromInput('', '', ''), {
+    ok: true,
+    window: { asOf: null, before: null, after: null },
+  });
+  assert.equal(windowFromInput('2026-02-30', '10年', '').field, 'asOf');
+  assert.equal(windowFromInput('2000-01-01', '0天', '').field, 'before');
+  assert.equal(windowFromInput('2000-01-01', '10年', 'abc').field, 'after');
 });
 
-test('parsePinArgs implements the /pin grammar', () => {
+test('parsePinArgs implements the split-range /pin grammar', () => {
+  const TEN = { unit: 'year', amount: 10 };
+  const FIVE = { unit: 'year', amount: 5 };
+  const SEVEN_DAYS = { unit: 'day', amount: 7 };
   assert.deepEqual(parsePinArgs(''), { kind: 'status' });
   assert.deepEqual(parsePinArgs('  '), { kind: 'status' });
   assert.deepEqual(parsePinArgs('off'), { kind: 'off' });
   assert.deepEqual(parsePinArgs('清空'), { kind: 'off' });
   assert.deepEqual(parsePinArgs('2000-01-01'), { kind: 'asOf', asOf: CE(2000) });
   assert.deepEqual(parsePinArgs('2000'), { kind: 'asOf', asOf: CE(2000) });
+  // One side mirrors to both.
   assert.deepEqual(parsePinArgs('2000-01-01 10年'), {
     kind: 'window',
     asOf: CE(2000),
-    span: { unit: 'year', amount: 10 },
+    before: TEN,
+    after: TEN,
+  });
+  assert.deepEqual(parsePinArgs('2000-01-01 后5年'), {
+    kind: 'window',
+    asOf: CE(2000),
+    before: FIVE,
+    after: FIVE,
+  });
+  // Two sides are positional unless the prefixes say otherwise.
+  assert.deepEqual(parsePinArgs('2000-01-01 前10年 后5年'), {
+    kind: 'window',
+    asOf: CE(2000),
+    before: TEN,
+    after: FIVE,
+  });
+  assert.deepEqual(parsePinArgs('2000-01-01 10年 5年'), {
+    kind: 'window',
+    asOf: CE(2000),
+    before: TEN,
+    after: FIVE,
+  });
+  assert.deepEqual(parsePinArgs('2000-01-01 前10年/后5年'), {
+    kind: 'window',
+    asOf: CE(2000),
+    before: TEN,
+    after: FIVE,
   });
   assert.deepEqual(parsePinArgs('公元前200年 前20年'), {
     kind: 'window',
     asOf: BCE(200),
-    span: { unit: 'year', amount: 20 },
+    before: { unit: 'year', amount: 20 },
+    after: { unit: 'year', amount: 20 },
   });
   assert.deepEqual(parsePinArgs('BC 200 20 years'), {
     kind: 'window',
     asOf: BCE(200),
-    span: { unit: 'year', amount: 20 },
+    before: { unit: 'year', amount: 20 },
+    after: { unit: 'year', amount: 20 },
   });
   assert.deepEqual(parsePinArgs('3000 不限'), {
     kind: 'window',
     asOf: CE(3000),
-    span: null,
+    before: null,
+    after: null,
   });
-  // A span alone pins the clock to "today" and keeps a finite lookback.
+  assert.deepEqual(parsePinArgs('2000-01-01 前10年 不限'), {
+    kind: 'window',
+    asOf: CE(2000),
+    before: TEN,
+    after: null,
+  });
+  // Range-only input keeps the clock-following as-of.
   assert.deepEqual(parsePinArgs('7天'), {
-    kind: 'span',
-    span: { unit: 'day', amount: 7 },
+    kind: 'ranges',
+    before: SEVEN_DAYS,
+    after: SEVEN_DAYS,
   });
-  assert.deepEqual(parsePinArgs('30天'), {
-    kind: 'span',
-    span: { unit: 'day', amount: 30 },
+  assert.deepEqual(parsePinArgs('前7天 后30天'), {
+    kind: 'ranges',
+    before: SEVEN_DAYS,
+    after: { unit: 'day', amount: 30 },
   });
-  assert.deepEqual(parsePinArgs('不限'), { kind: 'span', span: null });
+  assert.deepEqual(parsePinArgs('不限'), { kind: 'ranges', before: null, after: null });
   assert.equal(parsePinArgs('2000-01-01 0天').kind, 'invalid');
   assert.equal(parsePinArgs('abc').kind, 'invalid');
 });
