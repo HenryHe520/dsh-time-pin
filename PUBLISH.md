@@ -1,5 +1,15 @@
 # PUBLISH · dsh-time-pin
 
+## 0.1.1（本地已就绪，待发布）
+
+- 内容：两处正确性修复（受限模式丢弃搜索服务商摘要、anchor echo 改为整行语义校验）+ 工程化
+  （`repository` 等元数据、npm 包内置截图与 `screenshots.json`、GitHub Actions CI、
+  `scripts/preflight.mjs`）。详见 `CHANGELOG.md` 的 `[0.1.1]` 段。
+- 验证：`npm test` → 133 tests（121 pass / 0 fail / 12 skipped）；`npm run preflight` → OK
+  （25 files, ~534 KiB）。
+- 发布命令（当前机器 npm token 已过期，需先 `npm login`）：
+  `npm publish --otp=<code>` 或 `npm stage publish` + `npm stage approve`。
+
 ## 已发布
 
 | 项 | 值 |
