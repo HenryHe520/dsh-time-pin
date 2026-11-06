@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.1.2] - 2026-11-06
+
+Fixes the panel being clipped by the DSH 0.2.2 header shell, plus two smaller
+correctness/UX fixes. No command or configuration-schema changes.
+
+### Fixed
+
+- **The chip panel is no longer clipped by the header actions slot.** DSH
+  0.2.2's shell clips (and fades) the title/actions area when the title is long,
+  so a `position: fixed` panel rendered inside the slot was cut off together
+  with the chip — clicking the chip looked like a no-op ("默认 · 不限" with no
+  panel). The panel now renders through `ReactDOM.createPortal` into
+  `document.body` (the shell's documented contract for overlays in the
+  title/actions slots), and the outside-press guard treats both the chip wrapper
+  and the portaled panel as "inside". A shell without `react-dom` still runs the
+  bundle (inline fallback, never a crash).
+- **`web_search` evidence notes follow `promptLocale`.** In English-mode
+  conversations the exclusion / zero-evidence notes were fixed Chinese text;
+  they now use the same locale as the window block (`zh` / `en`), and the
+  `createEvidencePostExecute` factory re-reads the locale per call so a live
+  settings change applies immediately.
+- **A clock-following window accepts the effective today date in the echo.**
+  With `asOf: null` the required line is still `时间窗：默认 · …` /
+  `Time window: default · …`, but a model that expands the placeholder to
+  today's actual date now counts as confirmed instead of earning a correction.
+
+### Changed
+
+- Tests: 138 total — 126 pass, 12 skipped in a plain checkout; the new cases
+  cover the portal (a fake `document` + `react-dom`), English evidence notes,
+  the locale thunk, and the today-date echo tolerance.
+
 ## [0.1.1] - 2026-11-06
 
 Packaging and documentation release, plus two correctness fixes; **no change to

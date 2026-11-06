@@ -109,7 +109,7 @@ function createReactStub() {
 }
 
 /** Load the bundle and return its captured factory registration. */
-function loadBundle() {
+function loadBundle(options = {}) {
 	const source = readFileSync(CLIENT_PATH, 'utf8');
 	const captured = new Map();
 	const sandbox = {
@@ -128,6 +128,7 @@ function loadBundle() {
 		clearTimeout,
 		setInterval,
 		clearInterval,
+		...(options.document === undefined ? {} : { document: options.document }),
 	};
 	vm.createContext(sandbox);
 	vm.runInContext(source, sandbox, { filename: 'lib/client.js' });
@@ -396,9 +397,18 @@ function todayDayNumber() {
 const SOURCE = readFileSync(CLIENT_PATH, 'utf8');
 const registrations = loadBundle();
 const reactStub = createReactStub();
+/** `react-dom` stand-in: records what is portaled where. */
+const reactDomStub = {
+	__portals: [],
+	createPortal(node, container) {
+		reactDomStub.__portals.push({ node, container });
+		return { type: 'portal', props: { node, container }, children: [] };
+	},
+};
 const requireStub = (id) => {
 	if (id === 'react') return reactStub;
-	throw new Error('unexpected require("' + id + '") — the bundle must only require react');
+	if (id === 'react-dom') return reactDomStub;
+	throw new Error('unexpected require("' + id + '") — the bundle must only require react / react-dom');
 };
 const plugin = registrations.get(PLUGIN_ID).factory(requireStub);
 
@@ -1197,6 +1207,50 @@ test('panel reports unknown commands and a missing command service without throw
 	assert.doesNotThrow(() => apply.props.onClick());
 	await flush();
 	assert.ok(reactStub.__updates.some((value) => value === surface.zh['error.applyUnavailable']));
+});
+
+test('the chip portals its panel to document.body (the header clips plain overlays)', () => {
+	const body = { tagName: 'BODY' };
+	const documentStub = {
+		body,
+		head: { appendChild() {}, removeChild() {} },
+		createElement: () => ({
+			style: {},
+			dataset: {},
+			setAttribute() {},
+			appendChild() {},
+			remove() {},
+		}),
+		querySelector: () => null,
+		querySelectorAll: () => [],
+		addEventListener() {},
+		removeEventListener() {},
+	};
+	// Isolated load: this factory sees a document, so the panel must portal.
+	const isolated = loadBundle({ document: documentStub });
+	const pluginWithDom = isolated.get(PLUGIN_ID).factory(requireStub);
+	const { ctx, captured } = createFakeContext();
+	pluginWithDom.apply(ctx);
+	const header = captured.slots.find(
+		(slot) => slot.options.name === 'conversation.session.header.actions',
+	);
+	assert.ok(header !== undefined, 'the header action must register');
+	reactDomStub.__portals.length = 0;
+	const tree = reactStub.render(
+		header.component,
+		{
+			sessionId: 'session-portal',
+			t: tZh,
+			useProjection: () => pinnedView(),
+			apply: async () => ({ ok: true }),
+		},
+		[true, null],
+	);
+	const portal = findElement(tree, (node) => node.type === 'portal');
+	assert.ok(portal !== null, 'an open chip must render its panel through createPortal');
+	assert.equal(portal.props.container, body);
+	assert.equal(reactDomStub.__portals.length, 1);
+	assert.ok(portal.props.node !== null && typeof portal.props.node === 'object');
 });
 
 test('panel recovers from a rejected command (busy state never sticks)', async () => {

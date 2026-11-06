@@ -496,7 +496,7 @@ existing conversation's window intact.
 ## Development
 
 ```sh
-npm test                    # 133 tests: 121 pass, 12 skipped in a plain checkout
+npm test                    # 138 tests: 126 pass, 12 skipped in a plain checkout
 npm run test:client         # 34 client lazy-bundle smoke tests (DOM stub)
 npm run preflight           # release checks: files, version/CHANGELOG, npm pack list
 node --check lib/index.js   # (and the other modules)

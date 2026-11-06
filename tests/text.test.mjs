@@ -3,6 +3,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { anchorLine, hasAnchorEcho } from '../lib/core/text.js';
+import {
+  formatAsOfDate,
+  subtractSpan,
+  today,
+} from '../lib/core/window.js';
 
 const CE = (year, month = 1, day = 1) => ({ era: 'ce', year, month, day });
 const BCE = (year, month = 1, day = 1) => ({ era: 'bce', year, month, day });
@@ -75,6 +80,17 @@ test('hasAnchorEcho: unlimited lookback echoes 不限 / unlimited', () => {
 test('hasAnchorEcho: BC window passes with the BC date form', () => {
   assert.equal(hasAnchorEcho('时间窗：公元前200年 · 前20年\n正文。', BC, 'zh'), true);
   assert.equal(hasAnchorEcho('时间窗：公元前220年 · 前20年\n正文。', BC, 'zh'), false);
+});
+
+test('hasAnchorEcho: a clock-following window also accepts the effective today date', () => {
+  const now = Date.UTC(2026, 10, 6, 4, 0, 0);
+  const day = today(now);
+  assert.equal(hasAnchorEcho(`时间窗：${formatAsOfDate(day)} · 前10年`, DEFAULT_CLOCK, 'zh', now), true);
+  const yesterday = subtractSpan(day, { unit: 'day', amount: 1 });
+  assert.equal(
+    hasAnchorEcho(`时间窗：${formatAsOfDate(yesterday)} · 前10年`, DEFAULT_CLOCK, 'zh', now),
+    false,
+  );
 });
 
 test('hasAnchorEcho: empty or non-string input fails closed', () => {

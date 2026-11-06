@@ -300,7 +300,7 @@ dsh plugin --profile desktop remove dsh-time-pin
 ## 开发
 
 ```sh
-npm test                    # 133 个测试：纯 checkout 下 121 通过、12 跳过
+npm test                    # 138 个测试：纯 checkout 下 126 通过、12 跳过
 npm run preflight           # 发布前检查：文件清单、版本/CHANGELOG 一致、npm 打包内容
 npm run test:client         # 34 个 Client 懒加载 bundle 冒烟测试（DOM stub）
 node --check lib/index.js   #（以及其他模块）

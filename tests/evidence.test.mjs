@@ -256,6 +256,41 @@ test('filterWebSearchValue: unrestricted windows leave the value untouched', () 
   assert.equal(filterWebSearchValue(value, undefined, NOW).value, value);
 });
 
+test('filterWebSearchValue: English notes follow promptLocale', () => {
+  const value = webValue(
+    [source('1995-01-01', 'kept'), source('2020-01-01', 'outside'), source(undefined, 'undated')],
+    'Provider answer.',
+  );
+  const result = filterWebSearchValue(value, PINNED_1990_2000, NOW, 'en');
+  assert.match(result.value.content, /Restricted mode/);
+  assert.match(result.value.content, /1990-01-01 to 2000-01-01/);
+  assert.match(result.value.content, /excluded 1 undated source\(s\) and 1 out-of-window source\(s\)/);
+  assert.doesNotMatch(result.value.content, /Provider answer|检索服务商/);
+});
+
+test('filterWebSearchValue: English zero-evidence note', () => {
+  const value = webValue([source(undefined, 'undated')]);
+  const result = filterWebSearchValue(value, PINNED_1990_2000, NOW, 'en');
+  assert.match(result.value.content, /No usable dated evidence/);
+  assert.match(result.value.content, /1990-01-01 to 2000-01-01/);
+});
+
+test('createEvidencePostExecute: the locale thunk drives the note language', async () => {
+  let locale = 'en';
+  const listener = createEvidencePostExecute({
+    getWindow: () => PINNED_1990_2000,
+    now: () => NOW,
+    locale: () => locale,
+  });
+  const exec = { name: 'web_search', agent: { id: 's' } };
+  const value = webValue([source(undefined, 'undated')]);
+  const english = await listener(exec, searchResult(value), async () => ({ kind: 'accept' }));
+  assert.match(english.value.content, /No usable dated evidence/);
+  locale = 'zh';
+  const chinese = await listener(exec, searchResult(value), async () => ({ kind: 'accept' }));
+  assert.match(chinese.value.content, /没有带日期的可用证据/);
+});
+
 test('filterWebSearchValue: malformed values are returned unchanged', () => {
   for (const value of [null, undefined, 'text', 42, {}, { sources: 'nope' }]) {
     const result = filterWebSearchValue(value, PINNED_1990_2000, NOW);
