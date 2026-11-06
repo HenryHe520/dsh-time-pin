@@ -1,25 +1,36 @@
 # PUBLISH · dsh-time-pin
 
-## 已发布（最新 0.1.1）
+## 已发布（最新 0.2.0）
 
 | 项 | 值 |
 |---|---|
 | npm 包 | `dsh-time-pin` |
-| 已发布版本 | `0.1.1` |
-| dist-tag | `latest` → `0.1.1` |
-| 发布时间 | 2026-11-06 20:26 (本地) ｜ registry `time.modified` = 2026-11-06T12:26:24Z |
+| 已发布版本 | `0.2.0` |
+| dist-tag | `latest` → `0.2.0` |
+| 发布时间 | 2026-11-06 22:43 (本地) ｜ registry `time.modified` = 2026-11-06T14:44:15Z |
 | 发布账号 | `henryhe520` |
-| 发布方式 | `npm stage publish` → `npm stage approve`（staged id `1c5ac2ef-3854-4b60-ae18-ed60b863a7fe`） |
-| shasum | `132309f1ab076ded8d8536a7eb63be5660012962`（与本地 `npm pack` 的 `dsh-time-pin-0.1.1.tgz` 完全一致） |
+| 发布方式 | `npm stage publish` → `npm stage approve`（staged id `9a3bb2ed-1827-4070-a4ff-d6e023e90123`） |
+| shasum | `85e5c48dbc2b438b1c8a1083ecde5e235fc05ce8`（与本地 `dsh-time-pin-0.2.0.tgz` 完全一致） |
 | 包地址 | https://www.npmjs.com/package/dsh-time-pin |
-| tarball | https://registry.npmjs.org/dsh-time-pin/-/dsh-time-pin-0.1.1.tgz |
-| Git tag / Release | `v0.1.1` ｜ https://github.com/HenryHe520/dsh-time-pin/releases/tag/v0.1.1 |
+| tarball | https://registry.npmjs.org/dsh-time-pin/-/dsh-time-pin-0.2.0.tgz |
+| Git tag / Release | `v0.2.0` ｜ https://github.com/HenryHe520/dsh-time-pin/releases/tag/v0.2.0 |
 | GitHub 仓库 | https://github.com/HenryHe520/dsh-time-pin（`repository` 字段已链回） |
-| CI | https://github.com/HenryHe520/dsh-time-pin/actions/runs/42216225528（Node 20/22/24 全绿） |
-| 本机 profile | desktop 已升级到 `dsh-time-pin@0.1.1`（**重启 DSH 一次生效**） |
+| 本机 profile | desktop = `dsh-time-pin@0.2.0`（npm 版本，与发布 tarball 哈希一致） |
 
-0.1.1 内容：受限模式丢弃检索服务商摘要、anchor echo 改为整行语义校验、CI/preflight、
-npm 元数据与 README 截图（详见 `CHANGELOG.md`）。`0.1.0` 保留为历史版本。
+0.2.0 内容：窗口模型从"只往前看"改为前后两侧 `[as_of − 前, as_of + 后]`，只填一侧时另一侧等值，两侧不填为不限，
+范围可以只输 `0`（无需单位，边界落在 as_of 当天），面板改为两个范围输入框，锚定行/校验/证据标签同步更新。
+详见 `CHANGELOG.md`。
+
+## 历史版本：0.1.1（2026-11-06）
+
+| 项 | 值 |
+|---|---|
+| 已发布版本 | `0.1.1` |
+| 发布时间 | 2026-11-06 20:26 (本地) |
+| 发布方式 | staged publish（id `1c5ac2ef-3854-4b60-ae18-ed60b863a7fe`） |
+| shasum | `132309f1ab076ded8d8536a7eb63be5660012962` |
+| tarball | https://registry.npmjs.org/dsh-time-pin/-/dsh-time-pin-0.1.1.tgz |
+| 内容 | 受限模式丢弃检索服务商摘要、anchor echo 整行语义校验、CI/preflight、npm 元数据与 README 截图 |
 
 ## 历史版本：0.1.0（2026-11-04）
 
@@ -31,8 +42,8 @@ npm 元数据与 README 截图（详见 `CHANGELOG.md`）。`0.1.0` 保留为历
 | tarball | https://registry.npmjs.org/dsh-time-pin/-/dsh-time-pin-0.1.0.tgz |
 | 校验 | 当时与本地 19 个发布文件逐文件哈希一致 |
 
-发布流程说明：这次用的是 npm 的 **staged publishing**（`npm stage publish` + `npm stage approve`），registry 里会先出现一个
-`0.0.0-stage` 占位版本，批准后真正的 `0.1.0` 才生效；`0.0.0-stage` 是 npm 的占位记录，不是产品版本。
+发布流程说明：使用的是 npm 的 **staged publishing**（`npm stage publish` + `npm stage approve`），
+registry 里会先出现一个 `0.0.0-stage` 占位版本，批准后真正的版本才生效；`0.0.0-stage` 是 npm 的占位记录，不是产品版本。
 
 ## 安装（面向用户）
 
